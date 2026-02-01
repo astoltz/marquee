@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marquee Sign Library — Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      color: #ff6644;
+      font-size: 1.8em;
+      margin-bottom: 8px;
+      font-family: monospace;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #888;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+    }
+
+    /* ===== NAV TABS ===== */
+    .demo-nav {
+      max-width: 960px;
+      margin: 0 auto 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .demo-nav button {
+      background: #16213e;
+      color: #888;
+      border: 1px solid #333;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8em;
+      transition: all 0.15s;
+    }
+    .demo-nav button:hover {
+      border-color: #666;
+      color: #ccc;
+    }
+    .demo-nav button.active {
+      background: #2a2a5a;
+      border-color: #ff6644;
+      color: #ff6644;
+    }
+    .demo-nav button.demo-mode-btn {
+      background: #1a3a1a;
+      border-color: #00aa44;
+      color: #00aa44;
+    }
+    .demo-nav button.demo-mode-btn.active {
+      background: #00aa44;
+      color: #fff;
+      border-color: #00cc55;
+    }
+
+    /* ===== DEMO SECTIONS ===== */
+    .demo-section {
+      max-width: 960px;
+      margin: 0 auto 30px;
+      background: #16213e;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #333;
+      display: none;
+    }
+    .demo-section.visible { display: block; }
+
+    .demo-section h2 {
+      color: #aaa;
+      font-size: 0.85em;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+
+    .demo-section p.desc {
+      color: #666;
+      font-size: 0.8em;
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+
+    .sign-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .controls button {
+      background: #2a2a4a;
+      color: #ddd;
+      border: 1px solid #444;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85em;
+    }
+
+    .controls button:hover {
+      background: #3a3a6a;
+      border-color: #666;
+    }
+
+    .controls button.show-json-btn {
+      background: none;
+      border: 1px solid #444;
+      color: #888;
+      font-size: 0.75em;
+      padding: 4px 10px;
+      margin-left: auto;
+    }
+    .controls button.show-json-btn:hover {
+      color: #00ff88;
+      border-color: #00ff88;
+    }
+
+    .json-preview {
+      display: none;
+      margin-top: 10px;
+      background: #0f0f2a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.75em;
+      color: #00ff88;
+      white-space: pre;
+      overflow-x: auto;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .json-preview.open { display: block; }
+
+    /* ===== PRESET GRID ===== */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 20px;
+      max-width: 960px;
+      margin: 0 auto 20px;
+    }
+
+    .section-label {
+      text-align: center;
+      color: #666;
+      font-size: 0.75em;
+      letter-spacing: 3px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+    }
+
+    .preset-card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #333;
+    }
+
+    .preset-card h3 {
+      color: #aaa;
+      font-size: 0.75em;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .preset-card .sign-wrap {
+      display: flex;
+      justify-content: center;
+    }
+
+    .preset-card .controls {
+      margin-top: 8px;
+    }
+
+    /* ===== BUILDER ===== */
+    .builder textarea {
+      width: 100%;
+      min-height: 300px;
+      background: #0f0f2a;
+      color: #00ff88;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.85em;
+      resize: vertical;
+    }
+
+    .builder .controls { margin-top: 10px; }
+
+    .ws-status {
+      font-size: 0.75em;
+      color: #666;
+      margin-top: 8px;
+    }
+
+    code {
+      background: #0f0f2a;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.85em;
+      color: #00ff88;
+    }
+
+    .poll-status {
+      font-size: 0.75em;
+      color: #666;
+      margin-top: 6px;
+    }
+    .poll-status span { color: #00ff88; }
+
+    .demo-mode-indicator {
+      text-align: center;
+      color: #00aa44;
+      font-size: 0.75em;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .demo-mode-indicator.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <h1>&lt;MARQUEE&gt;</h1>
+  <p class="subtitle">Programmable sign library — LED, flip-tile, bulb, and modern text modes</p>
+
+  <!-- ===== NAVIGATION ===== -->
+  <nav class="demo-nav" id="demo-nav">
+    <button class="demo-mode-btn" onclick="toggleDemoMode()" id="demo-mode-btn">Demo Mode</button>
+    <button class="active" data-tab="featured">Featured</button>
+    <button data-tab="cycling">Cycling</button>
+    <button data-tab="america">Tri-Color</button>
+    <button data-tab="flip">Flip-Tile</button>
+    <button data-tab="modern">Modern Text</button>
+    <button data-tab="polling">Live Polling</button>
+    <button data-tab="presets">All Presets</button>
+    <button data-tab="builder">Builder</button>
+  </nav>
+  <p class="demo-mode-indicator" id="demo-mode-indicator">Demo mode — auto-rotating every 8 seconds</p>
+
+  <!-- ============================================= -->
+  <!-- FEATURED: User's exact example sequence       -->
+  <!-- ============================================= -->
+  <div class="demo-section visible" data-demo="featured">
+    <h2>Featured Sequence</h2>
+    <p class="desc">Scrolls "Sample message" to center, flashes, floats up, then fades in "Brownspot Moo Plug"</p>
+    <div class="sign-wrap"><div id="demo-main"></div></div>
+    <div class="controls">
+      <button onclick="signs.featured && signs.featured.play()">Play</button>
+      <button onclick="signs.featured && signs.featured.pause()">Pause</button>
+      <button onclick="signs.featured && signs.featured.stop()">Stop</button>
+      <button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button>
+    </div>
+    <div class="json-preview" id="json-main"></div>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- CYCLING MESSAGES with random phases           -->
+  <!-- ============================================= -->
+  <div class="demo-section" data-demo="cycling">
+    <h2>Cycling Messages</h2>
+    <p class="desc">Four messages in sequence — scroll in, float up, fade in, slide in with flash — each with a distinct transition</p>
+    <div class="sign-wrap"><div id="demo-cycling"></div></div>
+    <div class="controls">
+      <button onclick="signs.cycling && signs.cycling.play()">Play</button>
+      <button onclick="signs.cycling && signs.cycling.stop()">Stop</button>
+      <button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button>
+    </div>
+    <div class="json-preview" id="json-cycling"></div>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- TRI-COLOR STRIPE: America! Fuck yeah!         -->
+  <!-- ============================================= -->
+  <div class="demo-section" data-demo="america">
+    <h2>Tri-Color Stripe — Vertical</h2>
+    <p class="desc">Red, white, and blue per-character striping — like a patriotic marquee sign</p>
+    <div class="sign-wrap"><div id="demo-america"></div></div>
+    <div class="controls">
+      <button onclick="signs.america && signs.america.play()">Play</button>
+      <button onclick="signs.america && signs.america.stop()">Stop</button>
+      <button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button>
+    </div>
+    <div class="json-preview" id="json-america"></div>
+
+    <h2 style="margin-top:20px;">Tri-Color Stripe — Horizontal</h2>
+    <p class="desc">Rows of color across the sign — stripeDirection: 'horizontal'</p>
+    <div class="sign-wrap"><div id="demo-america-h"></div></div>
+    <div class="controls">
+      <button onclick="signs.americaH && signs.americaH.play()">Play</button>
+      <button onclick="signs.americaH && signs.americaH.stop()">Stop</button>
+      <button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button>
+    </div>
+    <div class="json-preview" id="json-america-h"></div>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- FLIP-TILE: Waseca green with cascade          -->
+  <!-- ============================================= -->
+  <div class="demo-section" data-demo="flip">
+    <h2>Flip-Tile (Waseca Style)</h2>
+    <p class="desc">Mechanical flip-dot tiles cascade column by column, like the real signs</p>
+    <div class="sign-wrap"><div id="demo-flip-featured"></div></div>
+    <div class="controls">
+      <button onclick="signs.flip && signs.flip.play()">Play</button>
+      <button onclick="signs.flip && signs.flip.stop()">Stop</button>
+      <button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button>
+    </div>
+    <div class="json-preview" id="json-flip"></div>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- MODERN TEXT MODE                              -->
+  <!-- ============================================= -->
+  <div class="demo-section" data-demo="modern">
+    <h2>Modern Text Mode</h2>
+    <p class="desc">CSS-based text rendering with per-character rainbow colors</p>
+    <div class="sign-wrap"><div id="demo-modern" style="height:60px; width:600px; background:#111;"></div></div>
+    <div class="controls">
+      <button onclick="signs.modern && signs.modern.play()">Play</button>
+      <button onclick="signs.modern && signs.modern.stop()">Stop</button>
+      <button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button>
+    </div>
+    <div class="json-preview" id="json-modern"></div>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- JSON FILE POLLING (dynamic server endpoint)   -->
+  <!-- ============================================= -->
+  <div class="demo-section" data-demo="polling">
+    <h2>Live Server Polling</h2>
+    <p class="desc">Polls <code>/api/sign.json</code> every 15 seconds — server returns a new sequence with timestamp, counter, and uptime each time</p>
+    <div class="sign-wrap"><div id="demo-json"></div></div>
+    <div class="controls">
+      <button onclick="signs.polling && signs.polling.loadURL('/api/sign.json', {pollInterval: 15000})">Reload Now</button>
+      <button onclick="signs.polling && signs.polling.stop()">Stop</button>
+      <button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button>
+    </div>
+    <div class="json-preview" id="json-poll"></div>
+    <p class="poll-status">Last loaded: <span id="poll-time">—</span> | Polls: <span id="poll-count">0</span></p>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- HARDWARE PRESETS GRID                         -->
+  <!-- ============================================= -->
+  <div class="demo-section" data-demo="presets">
+    <p class="section-label">Hardware Presets</p>
+
+    <div class="preset-grid">
+      <div class="preset-card">
+        <h3>Flip-Tile (Waseca Green)</h3>
+        <div class="sign-wrap"><div id="demo-p-flip"></div></div>
+        <div class="controls"><button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button></div>
+        <div class="json-preview" id="json-p-flip"></div>
+      </div>
+
+      <div class="preset-card">
+        <h3>Flip-Tile (Yellow)</h3>
+        <div class="sign-wrap"><div id="demo-p-flip-yellow"></div></div>
+        <div class="controls"><button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button></div>
+        <div class="json-preview" id="json-p-flipy"></div>
+      </div>
+
+      <div class="preset-card">
+        <h3>Incandescent Bulb</h3>
+        <div class="sign-wrap"><div id="demo-p-bulb"></div></div>
+        <div class="controls"><button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button></div>
+        <div class="json-preview" id="json-p-bulb"></div>
+      </div>
+
+      <div class="preset-card">
+        <h3>Theater Marquee</h3>
+        <div class="sign-wrap"><div id="demo-p-theater"></div></div>
+        <div class="controls"><button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button></div>
+        <div class="json-preview" id="json-p-theater"></div>
+      </div>
+
+      <div class="preset-card">
+        <h3>LED Mono (Red)</h3>
+        <div class="sign-wrap"><div id="demo-p-led-mono"></div></div>
+        <div class="controls"><button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button></div>
+        <div class="json-preview" id="json-p-mono"></div>
+      </div>
+
+      <div class="preset-card">
+        <h3>LED Mono (Green)</h3>
+        <div class="sign-wrap"><div id="demo-p-led-green"></div></div>
+        <div class="controls"><button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button></div>
+        <div class="json-preview" id="json-p-green"></div>
+      </div>
+
+      <div class="preset-card">
+        <h3>LED Mono (Amber)</h3>
+        <div class="sign-wrap"><div id="demo-p-led-amber"></div></div>
+        <div class="controls"><button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button></div>
+        <div class="json-preview" id="json-p-amber"></div>
+      </div>
+
+      <div class="preset-card">
+        <h3>LED 14-Color</h3>
+        <div class="sign-wrap"><div id="demo-p-led-14"></div></div>
+        <div class="controls"><button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button></div>
+        <div class="json-preview" id="json-p-14"></div>
+      </div>
+
+      <div class="preset-card">
+        <h3>LED Full RGB</h3>
+        <div class="sign-wrap"><div id="demo-p-led-rgb"></div></div>
+        <div class="controls"><button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button></div>
+        <div class="json-preview" id="json-p-rgb"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- SEQUENCE BUILDER                              -->
+  <!-- ============================================= -->
+  <div class="demo-section" data-demo="builder">
+    <h2>Sequence Builder (paste JSON)</h2>
+    <textarea id="json-input">[
+  {
+    "text": "YOUR MESSAGE HERE",
+    "phase": "scroll-left",
+    "color": "#ff3300",
+    "until": "center",
+    "speed": 100
+  },
+  {
+    "phase": "flash",
+    "times": 3,
+    "interval": 250,
+    "color": "#ffff00"
+  },
+  {
+    "phase": "pause",
+    "duration": 1000
+  },
+  {
+    "phase": "fade-out",
+    "duration": 500
+  }
+]</textarea>
+    <div class="controls">
+      <button onclick="runCustomSequence()">Run Sequence</button>
+      <button onclick="signs.builder && signs.builder.stop()">Stop</button>
+      <select id="builder-preset" onchange="rebuildCustomSign()">
+        <option value="">Modern (text)</option>
+        <option value="flip-tile">Flip-Tile Green</option>
+        <option value="flip-tile-yellow">Flip-Tile Yellow</option>
+        <option value="bulb">Bulb</option>
+        <option value="bulb-theater">Theater</option>
+        <option value="led-mono">LED Mono Red</option>
+        <option value="led-mono-green">LED Mono Green</option>
+        <option value="led-mono-amber">LED Mono Amber</option>
+        <option value="led-14" selected>LED 14-Color</option>
+        <option value="led-rgb">LED RGB</option>
+      </select>
+    </div>
+    <div class="sign-wrap" style="margin-top:12px;"><div id="demo-custom"></div></div>
+    <p class="ws-status">WebSocket: <code>sign.connectWS('ws://localhost:8080')</code> | JSON file: <code>sign.loadURL('/api/sign.json', {pollInterval: 60000})</code></p>
+  </div>
+
+  <!-- Load the UMD build -->
+  <script src="../dist/marquee.umd.js"></script>
+  <script>
+    const M = MarqueeLib.Marquee || MarqueeLib.default || MarqueeLib;
+
+    // =============================================
+    // LAZY INITIALIZATION SYSTEM
+    // =============================================
+    // Track which demos have been initialized and their sign instances
+    const signs = {};
+    const initialized = {};
+
+    // =============================================
+    // JSON TOGGLE HELPER
+    // =============================================
+    function toggleJson(btn) {
+      const preview = btn.closest('.demo-section, .preset-card, .builder').querySelector('.json-preview');
+      if (!preview) return;
+      const isOpen = preview.classList.toggle('open');
+      btn.textContent = isOpen ? 'Hide JSON' : 'Show JSON';
+    }
+
+    function showConfig(elementId, opts, steps) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const serializable = steps.map(s => {
+        const copy = { ...s };
+        if (typeof copy.color === 'function') {
+          copy.color = copy.color.toString().replace(/\s+/g, ' ').trim();
+        }
+        return copy;
+      });
+      el.textContent = JSON.stringify({ options: opts, sequence: serializable }, null, 2);
+    }
+
+    // =============================================
+    // HELPERS
+    // =============================================
+    function colsForText(text, extraPadding) {
+      return text.length * 6 + (extraPadding || 8);
+    }
+
+    function colsForTexts(texts, extraPadding) {
+      const longest = texts.reduce((a, b) => a.length > b.length ? a : b, '');
+      return colsForText(longest, extraPadding);
+    }
+
+    // Preset dot size/gap lookup for computing fill-width columns
+    const PRESET_DOTS = {
+      'flip-tile': [6, 2], 'flip-tile-yellow': [6, 2],
+      'bulb': [8, 3], 'bulb-theater': [10, 4],
+      'led-mono': [4, 1], 'led-mono-green': [4, 1], 'led-mono-amber': [4, 1],
+      'led-14': [4, 1], 'led-rgb': [3, 1],
+    };
+
+    // Calculate columns to fill the container (max-width 960px, 20px section padding, 8px sign padding each side)
+    function colsForContainer(preset) {
+      const [dotSize, dotGap] = PRESET_DOTS[preset] || [4, 1];
+      const availWidth = 920 - 16; // 960 - 2*20 section padding - 2*8 sign padding
+      return Math.floor((availWidth + dotGap) / (dotSize + dotGap));
+    }
+
+    // For preset cards in the 2-column grid (roughly half width)
+    function colsForCard(preset) {
+      const [dotSize, dotGap] = PRESET_DOTS[preset] || [4, 1];
+      const availWidth = 420 - 32 - 16; // card min-width - card padding - sign padding
+      return Math.floor((availWidth + dotGap) / (dotSize + dotGap));
+    }
+
+    // =============================================
+    // DEMO INITIALIZERS (lazy — called on first view)
+    // =============================================
+    const demoInits = {
+      featured() {
+        const texts = ['Sample message', 'Brownspot Moo Plug'];
+        const opts = { preset: 'led-14', cols: colsForContainer('led-14'), rows: 9, loop: true };
+        const steps = [
+          { text: 'Sample message', phase: 'scroll-left', color: '#ff3300', until: 'center', speed: 120 },
+          { phase: 'flash', times: 3, interval: 300, color: '#ffff00' },
+          { phase: 'float-up', duration: 600, easing: 'ease-out' },
+          { text: 'Brownspot Moo Plug', phase: 'fade-in', duration: 800, color: '#00cc00' },
+          { phase: 'pause', duration: 2000 },
+          { phase: 'fade-out', duration: 500 },
+        ];
+        signs.featured = new M('#demo-main', opts);
+        signs.featured.sequence(steps);
+        signs.featured.play();
+        showConfig('json-main', opts, steps);
+      },
+
+      cycling() {
+        const opts = { preset: 'led-14', cols: colsForContainer('led-14'), rows: 9, loop: true };
+        const steps = [
+          // 1. "Jon is stupid." — scrolls in from right, holds center
+          { text: 'Jon is stupid.', phase: 'scroll-left', color: '#ff3300', until: 'center', speed: 100 },
+          { phase: 'pause', duration: 1500 },
+          { phase: 'fade-out', duration: 400 },
+          // 2. "Jon is dumb." — fades in, floats up
+          { text: 'Jon is dumb.', phase: 'fade-in', color: '#ffaa00', duration: 600 },
+          { phase: 'pause', duration: 800 },
+          { phase: 'float-up', duration: 700, easing: 'ease-out' },
+          { phase: 'pause', duration: 1500 },
+          // 3. "Brownspot moo plug." — fades in
+          { phase: 'fade-out', duration: 400 },
+          { text: 'Brownspot moo plug.', phase: 'fade-in', color: '#00cc00', duration: 800 },
+          { phase: 'pause', duration: 1500 },
+          // 4. "Brownspot tummy!" — slides in, flashes, scrolls off
+          { phase: 'fade-out', duration: 400 },
+          { text: 'Brownspot tummy!', phase: 'slide-in', color: '#ff0066', duration: 600 },
+          { phase: 'flash', times: 4, interval: 200, color: '#ffff00' },
+          { phase: 'pause', duration: 1000 },
+          { phase: 'scroll-left', speed: 80, until: 'offscreen', color: '#ff0066' },
+        ];
+        signs.cycling = new M('#demo-cycling', opts);
+        signs.cycling.sequence(steps);
+        signs.cycling.play();
+        showConfig('json-cycling', opts, steps);
+      },
+
+      america() {
+        const text = 'America! Fuck yeah!';
+        const rwb = ['#ff0000', '#ffffff', '#0066ff'];
+        const color = (i) => rwb[i % 3];
+        const opts = { preset: 'led-14', cols: colsForContainer('led-14'), rows: 9, loop: true };
+        const steps = [
+          { text, phase: 'scroll-left', color, until: 'center', speed: 100 },
+          { phase: 'flash', times: 5, interval: 200, color },
+          { phase: 'pause', duration: 2000, color },
+          { phase: 'scroll-left', speed: 80, until: 'offscreen', color },
+        ];
+        signs.america = new M('#demo-america', opts);
+        signs.america.sequence(steps);
+        signs.america.play();
+        showConfig('json-america', opts, steps);
+
+        // Horizontal stripe version — 3 solid bands (3 rows each)
+        const bands = ['#ff0000','#ff0000','#ff0000', '#ffffff','#ffffff','#ffffff', '#0066ff','#0066ff','#0066ff'];
+        const hOpts = { preset: 'led-14', cols: colsForContainer('led-14'), rows: 9, loop: true };
+        const hSteps = [
+          { text, phase: 'scroll-left', color: bands, stripeDirection: 'horizontal', until: 'center', speed: 100 },
+          { phase: 'flash', times: 5, interval: 200, color: bands, stripeDirection: 'horizontal' },
+          { phase: 'pause', duration: 2000, color: bands, stripeDirection: 'horizontal' },
+          { phase: 'scroll-left', speed: 80, until: 'offscreen', color: bands, stripeDirection: 'horizontal' },
+        ];
+        signs.americaH = new M('#demo-america-h', hOpts);
+        signs.americaH.sequence(hSteps);
+        signs.americaH.play();
+        showConfig('json-america-h', hOpts, hSteps);
+      },
+
+      flip() {
+        const texts = ['WASECA SIGN', 'FLIP TILES', 'HELLO WORLD'];
+        const opts = { preset: 'flip-tile', cols: colsForContainer('flip-tile'), rows: 9, loop: true };
+        const steps = [];
+        for (const msg of texts) {
+          steps.push({ text: msg, phase: 'fade-in', duration: 600 });
+          steps.push({ phase: 'pause', duration: 2000 });
+          steps.push({ phase: 'fade-out', duration: 600 });
+        }
+        signs.flip = new M('#demo-flip-featured', opts);
+        signs.flip.sequence(steps);
+        signs.flip.play();
+        showConfig('json-flip', opts, steps);
+      },
+
+      modern() {
+        const opts = { fontSize: 36, color: '#00ffcc', background: '#111', loop: true };
+        const steps = [
+          { text: 'Modern CSS Text Mode', phase: 'scroll-left', speed: 80, until: 'center', color: (i) => `hsl(${i * 25 + 160}, 100%, 65%)` },
+          { phase: 'pause', duration: 2000 },
+          { phase: 'fade-out', duration: 600 },
+        ];
+        signs.modern = new M('#demo-modern', opts);
+        signs.modern.sequence(steps);
+        signs.modern.play();
+        showConfig('json-modern', opts, steps);
+      },
+
+      polling() {
+        let pollCount = 0;
+        const opts = { preset: 'led-mono-green', cols: colsForContainer('led-mono-green'), rows: 9, loop: true };
+        signs.polling = new M('#demo-json', opts);
+        signs.polling.loadURL('/api/sign.json', { pollInterval: 15000 });
+        signs.polling.on('load', (e) => {
+          pollCount++;
+          document.getElementById('poll-time').textContent = new Date().toLocaleTimeString();
+          document.getElementById('poll-count').textContent = pollCount;
+          const el = document.getElementById('json-poll');
+          if (el) el.textContent = JSON.stringify(e.data, null, 2);
+        });
+        signs.polling.on('load:error', (e) => {
+          console.warn('JSON load failed:', e.error);
+          signs.polling.sequence([
+            { text: 'SERVER NOT RUNNING', phase: 'scroll-left', color: '#ff3300', until: 'center', speed: 80 },
+            { phase: 'pause', duration: 3000 },
+          ]);
+          signs.polling.play();
+          const el = document.getElementById('json-poll');
+          if (el) el.textContent = '// Server not running — start with: npm run serve\n// Endpoint: GET /api/sign.json';
+        });
+        showConfig('json-poll', { ...opts, loadURL: '/api/sign.json', pollInterval: 15000 }, [{ note: 'loaded from server' }]);
+      },
+
+      presets() {
+        function makePresetDemo(id, jsonId, preset, text) {
+          const cols = colsForCard(preset);
+          const opts = { preset, cols, rows: 9, loop: true };
+          const steps = [
+            { text, phase: 'scroll-left', speed: 60, until: 'center' },
+            { phase: 'pause', duration: 1500 },
+            { phase: 'scroll-left', speed: 60, until: 'offscreen' },
+          ];
+          const sign = new M('#' + id, opts);
+          sign.sequence(steps);
+          sign.play();
+          showConfig(jsonId, opts, steps);
+          return sign;
+        }
+
+        signs._presets = [];
+        signs._presets.push(makePresetDemo('demo-p-flip', 'json-p-flip', 'flip-tile', 'WASECA SIGN'));
+        signs._presets.push(makePresetDemo('demo-p-flip-yellow', 'json-p-flipy', 'flip-tile-yellow', 'TRANSIT INFO'));
+        signs._presets.push(makePresetDemo('demo-p-bulb', 'json-p-bulb', 'bulb', 'FIRST BANK'));
+        signs._presets.push(makePresetDemo('demo-p-theater', 'json-p-theater', 'bulb-theater', 'NOW PLAYING'));
+        signs._presets.push(makePresetDemo('demo-p-led-mono', 'json-p-mono', 'led-mono', 'TEMPERATURE 72F'));
+        signs._presets.push(makePresetDemo('demo-p-led-green', 'json-p-green', 'led-mono-green', 'OPEN 24 HOURS'));
+        signs._presets.push(makePresetDemo('demo-p-led-amber', 'json-p-amber', 'led-mono-amber', 'NEXT BUS 5 MIN'));
+
+        // 14-color with color cycling
+        const led14Opts = { preset: 'led-14', cols: colsForCard('led-14'), rows: 9, loop: true };
+        const led14Steps = [
+          { text: 'WELCOME', phase: 'fade-in', duration: 600, color: '#ff0000' },
+          { phase: 'pause', duration: 800 },
+          { phase: 'flash', times: 2, interval: 200, color: '#ffff00' },
+          { text: 'WELCOME', phase: 'fade-in', duration: 400, color: '#00cc00' },
+          { phase: 'pause', duration: 800 },
+          { phase: 'fade-out', duration: 400 },
+        ];
+        const led14sign = new M('#demo-p-led-14', led14Opts);
+        led14sign.sequence(led14Steps);
+        led14sign.play();
+        showConfig('json-p-14', led14Opts, led14Steps);
+        signs._presets.push(led14sign);
+
+        signs._presets.push(makePresetDemo('demo-p-led-rgb', 'json-p-rgb', 'led-rgb', 'FULL COLOR LED'));
+      },
+
+      builder() {
+        function createCustomSign(preset) {
+          const opts = preset
+            ? { preset, cols: colsForContainer(preset), rows: 9, loop: false }
+            : { fontSize: 32, color: '#ff3300', background: '#111', loop: false };
+          return new M('#demo-custom', opts);
+        }
+        signs.builder = createCustomSign('led-14');
+        // Expose rebuild function
+        window._createCustomSign = createCustomSign;
+      },
+    };
+
+    // =============================================
+    // TAB SWITCHING
+    // =============================================
+    let activeTab = 'featured';
+
+    function switchTab(tabName) {
+      if (tabName === activeTab && initialized[tabName]) return;
+
+      // Hide all sections
+      document.querySelectorAll('.demo-section').forEach(el => el.classList.remove('visible'));
+
+      // Show target section
+      const target = document.querySelector(`[data-demo="${tabName}"]`);
+      if (target) target.classList.add('visible');
+
+      // Update nav buttons
+      document.querySelectorAll('.demo-nav button[data-tab]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+      });
+
+      // Lazy init if needed
+      if (!initialized[tabName] && demoInits[tabName]) {
+        initialized[tabName] = true;
+        demoInits[tabName]();
+      }
+
+      activeTab = tabName;
+    }
+
+    // Wire up nav clicks
+    document.querySelectorAll('.demo-nav button[data-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        stopDemoMode();
+        switchTab(btn.dataset.tab);
+      });
+    });
+
+    // =============================================
+    // DEMO MODE (auto-rotation)
+    // =============================================
+    let demoModeTimer = null;
+    const demoTabs = ['featured', 'cycling', 'america', 'flip', 'modern', 'polling', 'presets', 'builder'];
+    let demoTabIndex = 0;
+
+    function toggleDemoMode() {
+      if (demoModeTimer) {
+        stopDemoMode();
+      } else {
+        startDemoMode();
+      }
+    }
+
+    function startDemoMode() {
+      document.getElementById('demo-mode-btn').classList.add('active');
+      document.getElementById('demo-mode-indicator').classList.add('active');
+      demoTabIndex = demoTabs.indexOf(activeTab);
+      advanceDemo();
+      demoModeTimer = setInterval(advanceDemo, 8000);
+    }
+
+    function stopDemoMode() {
+      if (demoModeTimer) {
+        clearInterval(demoModeTimer);
+        demoModeTimer = null;
+      }
+      document.getElementById('demo-mode-btn').classList.remove('active');
+      document.getElementById('demo-mode-indicator').classList.remove('active');
+    }
+
+    function advanceDemo() {
+      demoTabIndex = (demoTabIndex + 1) % demoTabs.length;
+      switchTab(demoTabs[demoTabIndex]);
+    }
+
+    // =============================================
+    // BUILDER HELPERS (global scope)
+    // =============================================
+    function runCustomSequence() {
+      try {
+        const json = document.getElementById('json-input').value;
+        const steps = JSON.parse(json);
+        if (signs.builder) {
+          signs.builder.stop();
+          signs.builder.sequence(steps);
+          signs.builder.play();
+        }
+      } catch (e) {
+        alert('Invalid JSON: ' + e.message);
+      }
+    }
+
+    function rebuildCustomSign() {
+      const preset = document.getElementById('builder-preset').value;
+      if (signs.builder) signs.builder.destroy();
+      if (window._createCustomSign) {
+        signs.builder = window._createCustomSign(preset);
+      }
+    }
+
+    // =============================================
+    // INIT: only the first visible tab
+    // =============================================
+    initialized.featured = true;
+    demoInits.featured();
+  </script>
+</body>
+</html>

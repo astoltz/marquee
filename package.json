@@ -1,0 +1,35 @@
+{
+  "name": "marquee-sign",
+  "version": "0.1.0",
+  "description": "Programmable marquee sign library — scroll, flash, fade, float with LED/flip-tile/bulb sign presets",
+  "type": "module",
+  "main": "dist/marquee.umd.js",
+  "module": "dist/marquee.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dist/marquee.esm.js",
+      "require": "./dist/marquee.umd.js"
+    },
+    "./css": "./dist/marquee.css"
+  },
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "serve": "node server.mjs",
+    "dev": "node esbuild.config.mjs --watch",
+    "test": "node test/marquee.test.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  },
+  "keywords": [
+    "marquee",
+    "scrolling-text",
+    "led-sign",
+    "programmable-sign",
+    "animation"
+  ],
+  "license": "MIT"
+}

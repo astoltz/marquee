@@ -1,0 +1,55 @@
+/* Marquee Sign Library — Base Styles
+ *
+ * These are injected automatically, but you can include this
+ * file manually and the auto-injection will be skipped.
+ * Add [data-marquee-styles] to your own <style> or <link> tag
+ * to prevent auto-injection.
+ */
+
+.marquee-container {
+  position: relative;
+  overflow: hidden;
+  font-family: monospace;
+  min-height: 40px;
+}
+
+.marquee-text {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform, opacity;
+  position: absolute;
+  top: 50%;
+  margin-top: -0.6em;
+}
+
+.marquee-char {
+  display: inline-block;
+}
+
+/* LED mode */
+.marquee-container.marquee-led {
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.marquee-led-grid {
+  display: grid;
+}
+
+.marquee-dot {
+  transition: background 0.04s, box-shadow 0.04s;
+}
+
+/* Flip-tile preset override: chunky square transition */
+.marquee-container[data-preset="flip-tile"] .marquee-dot,
+.marquee-container[data-preset="flip-tile-yellow"] .marquee-dot {
+  border-radius: 1px;
+  transition: background 0.08s step-end;
+}
+
+/* Bulb preset override: warm glow */
+.marquee-container[data-preset="bulb"] .marquee-dot,
+.marquee-container[data-preset="bulb-theater"] .marquee-dot {
+  transition: background 0.1s ease, box-shadow 0.1s ease;
+}

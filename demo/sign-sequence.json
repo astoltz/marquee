@@ -1,0 +1,32 @@
+{
+  "options": {
+    "loop": true
+  },
+  "sequence": [
+    {
+      "text": "LOADED FROM JSON FILE",
+      "phase": "scroll-left",
+      "color": "#00cc00",
+      "until": "center",
+      "speed": 100
+    },
+    {
+      "phase": "pause",
+      "duration": 2000
+    },
+    {
+      "text": "UPDATE THIS FILE TO CHANGE THE SIGN",
+      "phase": "fade-in",
+      "color": "#ffaa00",
+      "duration": 800
+    },
+    {
+      "phase": "pause",
+      "duration": 2000
+    },
+    {
+      "phase": "fade-out",
+      "duration": 500
+    }
+  ]
+}

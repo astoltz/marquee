@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marquee Sign — Embed Example</title>
+  <style>
+    /*
+      Optional wrapper styling. The marquee sign generates its own
+      internal layout; you only need to size the container.
+    */
+    .sign-wrapper {
+      max-width: 720px;
+      margin: 2rem auto;
+    }
+  </style>
+</head>
+<body>
+
+<!--
+  =====================================================================
+  VARIANT 1 — Self-hosted, inline configuration
+  =====================================================================
+  Drop marquee.umd.js and marquee.css into your project, then
+  configure the sequence directly in a <script> block.
+-->
+
+<div id="sign-inline" class="sign-wrapper"></div>
+
+<link rel="stylesheet" href="dist/marquee.css">
+<script src="dist/marquee.umd.js"></script>
+
+<script>
+  // --- Self-hosted inline sequence ---
+  var sign = new MarqueeLib.Marquee('#sign-inline', {
+    preset: 'led-mono',       // hardware preset (or 'led-rgb', 'flip-tile', etc.)
+    cols: 80,
+    rows: 9,
+    loop: true,
+  });
+
+  sign.sequence([
+    { text: 'Hello World',  phase: 'scroll-left', until: 'center', speed: 100 },
+    { phase: 'pause',       duration: 2000 },
+    { phase: 'flash',       times: 3, interval: 300, color: '#ffff00' },
+    { phase: 'fade-out',    duration: 500 },
+    { text: 'Marquee Sign', phase: 'scroll-left', until: 'center', speed: 120 },
+    { phase: 'pause',       duration: 2000 },
+    { phase: 'fade-out',    duration: 500 },
+  ]);
+
+  sign.play();
+</script>
+
+
+<!--
+  =====================================================================
+  VARIANT 2 — JSON-driven (content updated without code changes)
+  =====================================================================
+  Point the sign at a JSON endpoint. A CMS, cron job, or server-side
+  script writes the JSON file; the sign polls for updates automatically.
+
+  JSON file format (sign-sequence.json):
+  {
+    "options": { "loop": true },
+    "sequence": [
+      { "text": "Hello", "phase": "scroll-left", "until": "center", "speed": 100 },
+      { "phase": "pause", "duration": 2000 },
+      { "phase": "fade-out", "duration": 500 }
+    ]
+  }
+-->
+
+<!--
+<div id="sign-json" class="sign-wrapper"></div>
+
+<script>
+  var jsonSign = new MarqueeLib.Marquee('#sign-json', {
+    preset: 'led-14',
+    cols: 80,
+    rows: 9,
+  });
+
+  // Poll the JSON file every 10 minutes
+  jsonSign.loadURL('sign-sequence.json', {
+    pollInterval: 600000,
+  });
+</script>
+-->
+
+</body>
+</html>
