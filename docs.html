@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marquee Sign Library — Documentation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #1a1a2e;
+      --bg-card: #16213e;
+      --bg-code: #0f0f2a;
+      --border: #333;
+      --text: #e0e0e0;
+      --text-dim: #888;
+      --text-faint: #666;
+      --accent: #ff6644;
+      --green: #00ff88;
+      --link: #4488ff;
+      --sidebar-w: 240px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: #111127;
+      border-right: 1px solid var(--border);
+      padding: 20px 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 16px;
+      font-family: monospace;
+      font-size: 1.1em;
+      color: var(--accent);
+      font-weight: bold;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .sidebar nav a {
+      display: block;
+      padding: 6px 20px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.85em;
+      transition: color 0.15s, border-left-color 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .sidebar nav a:hover {
+      color: var(--text);
+    }
+    .sidebar nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+
+    /* Hamburger (mobile) */
+    .hamburger {
+      display: none;
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 200;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 1.4em;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 90;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main {
+      margin-left: var(--sidebar-w);
+      padding: 40px 40px 80px;
+    }
+
+    .main-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* ===== SECTIONS ===== */
+    section {
+      margin-bottom: 60px;
+      scroll-margin-top: 20px;
+    }
+
+    h1 {
+      font-family: monospace;
+      color: var(--accent);
+      font-size: 2em;
+      margin-bottom: 8px;
+    }
+
+    .hero-sub {
+      color: var(--text-dim);
+      font-size: 1em;
+      margin-bottom: 32px;
+    }
+
+    h2 {
+      color: var(--accent);
+      font-size: 1.4em;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #2a2a4a;
+    }
+
+    h3 {
+      color: #ccc;
+      font-size: 1.05em;
+      margin: 24px 0 12px;
+    }
+
+    h4 {
+      color: var(--text-dim);
+      font-size: 0.85em;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin: 20px 0 10px;
+    }
+
+    p {
+      margin-bottom: 12px;
+      color: #ccc;
+    }
+
+    a { color: var(--link); }
+
+    /* ===== CODE BLOCKS ===== */
+    .code-wrap {
+      position: relative;
+      margin: 12px 0 20px;
+    }
+    pre {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      font-family: 'Consolas', 'Fira Code', monospace;
+      font-size: 0.82em;
+      line-height: 1.5;
+      color: var(--green);
+    }
+    code {
+      font-family: 'Consolas', 'Fira Code', monospace;
+    }
+    :not(pre) > code {
+      background: var(--bg-code);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.88em;
+      color: var(--green);
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #2a2a4a;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.72em;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover {
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    /* ===== TABLES ===== */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 12px 0 20px;
+      -webkit-overflow-scrolling: touch;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82em;
+      min-width: 500px;
+    }
+    th {
+      background: #111127;
+      color: var(--text-dim);
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 2px solid var(--border);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #222;
+      vertical-align: top;
+    }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    td code {
+      white-space: nowrap;
+    }
+
+    /* ===== DEMO CONTAINERS ===== */
+    .demo-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+    .demo-box .sign-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 12px;
+      overflow-x: auto;
+    }
+    .demo-box .demo-label {
+      color: var(--text-faint);
+      font-size: 0.75em;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
+    /* ===== PRESET GRID ===== */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .preset-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .preset-card h4 {
+      margin: 0 0 4px;
+      font-size: 0.9em;
+      color: #ccc;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .preset-card .preset-desc {
+      color: var(--text-faint);
+      font-size: 0.75em;
+      margin-bottom: 10px;
+    }
+    .preset-card .sign-wrap {
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+    }
+
+    /* ===== INSTALL BOX ===== */
+    .install-box {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin: 16px 0;
+    }
+    .install-box .code-wrap {
+      flex: 1;
+      min-width: 250px;
+      margin: 0;
+    }
+    .install-box pre {
+      margin: 0;
+    }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.25s; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .hamburger { display: block; }
+      .main { margin-left: 0; padding: 60px 16px 80px; }
+      .preset-grid { grid-template-columns: 1fr; }
+      .install-box { flex-direction: column; }
+      table { font-size: 0.75em; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hamburger -->
+<button class="hamburger" id="hamburger" aria-label="Toggle sidebar">&#9776;</button>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">&lt;MARQUEE&gt; Docs</div>
+  <nav>
+    <a href="#getting-started">Getting Started</a>
+    <a href="#presets">Presets</a>
+    <a href="#phases">Animation Phases</a>
+    <a href="#colors">Colors</a>
+    <a href="#tokens">Tokens</a>
+    <a href="#split-flap">Split-Flap</a>
+    <a href="#remote">Remote Control</a>
+    <a href="#api">API Reference</a>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<div class="main">
+<div class="main-inner">
+
+<!-- ============================================= -->
+<!-- GETTING STARTED                               -->
+<!-- ============================================= -->
+<section id="getting-started">
+  <h1>&lt;MARQUEE&gt;</h1>
+  <p class="hero-sub">Programmable LED sign library for the browser. Zero dependencies. Three rendering modes: LED dot-matrix, split-flap display, and modern CSS text.</p>
+
+  <h3>Install</h3>
+  <div class="install-box">
+    <div class="code-wrap">
+      <pre><code>npm install marquee-sign</code></pre>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+    <div class="code-wrap">
+      <pre><code>&lt;script src="dist/marquee.umd.js"&gt;&lt;/script&gt;</code></pre>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+  </div>
+
+  <h3>Quick Start</h3>
+  <div data-docs-demo="getting-started" class="demo-box">
+    <p class="demo-label">Live example &mdash; scroll, flash, pause, fade-out (looping)</p>
+    <div class="sign-wrap"><div id="demo-start"></div></div>
+  </div>
+  <div class="code-wrap">
+    <pre><code>import { Marquee } from 'marquee-sign';
+
+const sign = new Marquee('#my-sign', {
+  preset: 'led-mono',
+  cols: 80,
+  rows: 9,
+  loop: true
+});
+
+sign.sequence([
+  { text: 'HELLO WORLD', phase: 'scroll-left', color: '#ff2200', until: 'center', speed: 100 },
+  { phase: 'flash', times: 3, interval: 300, color: '#ffff00' },
+  { phase: 'pause', duration: 2000 },
+  { phase: 'fade-out', duration: 500 }
+]);
+
+sign.play();</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+</section>
+
+<!-- ============================================= -->
+<!-- PRESETS                                        -->
+<!-- ============================================= -->
+<section id="presets">
+  <h2>Presets</h2>
+  <p>11 hardware presets simulate real-world sign types &mdash; from mechanical flip-tile boards to modern full-color LEDs. Each preset constrains colors, dot appearance, and animation feel to match specific sign hardware.</p>
+
+  <div data-docs-demo="presets" class="preset-grid">
+    <div class="preset-card">
+      <h4>flip-tile</h4>
+      <p class="preset-desc">Waseca-style mechanical flip dots, green/black</p>
+      <div class="sign-wrap"><div id="demo-p-flip-tile"></div></div>
+    </div>
+    <div class="preset-card">
+      <h4>flip-tile-yellow</h4>
+      <p class="preset-desc">Yellow transit flip-tile variant</p>
+      <div class="sign-wrap"><div id="demo-p-flip-tile-yellow"></div></div>
+    </div>
+    <div class="preset-card">
+      <h4>bulb</h4>
+      <p class="preset-desc">Incandescent bulbs, amber/red, warm glow</p>
+      <div class="sign-wrap"><div id="demo-p-bulb"></div></div>
+    </div>
+    <div class="preset-card">
+      <h4>bulb-theater</h4>
+      <p class="preset-desc">Theater marquee, white/warm bulbs, large dots</p>
+      <div class="sign-wrap"><div id="demo-p-bulb-theater"></div></div>
+    </div>
+    <div class="preset-card">
+      <h4>led-mono</h4>
+      <p class="preset-desc">Classic monochrome red LED</p>
+      <div class="sign-wrap"><div id="demo-p-led-mono"></div></div>
+    </div>
+    <div class="preset-card">
+      <h4>led-mono-green</h4>
+      <p class="preset-desc">Classic monochrome green LED</p>
+      <div class="sign-wrap"><div id="demo-p-led-mono-green"></div></div>
+    </div>
+    <div class="preset-card">
+      <h4>led-mono-amber</h4>
+      <p class="preset-desc">Classic monochrome amber LED</p>
+      <div class="sign-wrap"><div id="demo-p-led-mono-amber"></div></div>
+    </div>
+    <div class="preset-card">
+      <h4>led-14</h4>
+      <p class="preset-desc">14-color LED palette (bank sign era)</p>
+      <div class="sign-wrap"><div id="demo-p-led-14"></div></div>
+    </div>
+    <div class="preset-card">
+      <h4>led-rgb</h4>
+      <p class="preset-desc">Full RGB LED, any CSS color</p>
+      <div class="sign-wrap"><div id="demo-p-led-rgb"></div></div>
+    </div>
+    <div class="preset-card">
+      <h4>split-flap</h4>
+      <p class="preset-desc">Airport departure board, 20 cells</p>
+      <div class="sign-wrap"><div id="demo-p-split-flap"></div></div>
+    </div>
+    <div class="preset-card">
+      <h4>split-flap-clock</h4>
+      <p class="preset-desc">Flip clock, 5 cells, numeric wheel</p>
+      <div class="sign-wrap"><div id="demo-p-split-flap-clock"></div></div>
+    </div>
+  </div>
+
+  <h3>Preset Summary</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Type</th><th>Colors</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>flip-tile</code></td><td>LED (flip)</td><td>Mono (green)</td><td>Mechanical flip-dot with column cascade</td></tr>
+        <tr><td><code>flip-tile-yellow</code></td><td>LED (flip)</td><td>Mono (yellow)</td><td>Yellow transit variant</td></tr>
+        <tr><td><code>bulb</code></td><td>LED (bulb)</td><td>Amber + red</td><td>Incandescent with warm glow</td></tr>
+        <tr><td><code>bulb-theater</code></td><td>LED (bulb)</td><td>White + warm</td><td>Theater marquee, large bulbs</td></tr>
+        <tr><td><code>led-mono</code></td><td>LED</td><td>Mono (red)</td><td>Classic monochrome red LED</td></tr>
+        <tr><td><code>led-mono-green</code></td><td>LED</td><td>Mono (green)</td><td>Classic monochrome green LED</td></tr>
+        <tr><td><code>led-mono-amber</code></td><td>LED</td><td>Mono (amber)</td><td>Classic monochrome amber LED</td></tr>
+        <tr><td><code>led-14</code></td><td>LED</td><td>14-color palette</td><td>Limited-palette bank/store sign</td></tr>
+        <tr><td><code>led-rgb</code></td><td>LED</td><td>Unrestricted</td><td>Modern full-color LED panel</td></tr>
+        <tr><td><code>split-flap</code></td><td>Split-flap</td><td>N/A</td><td>Airport departure board, 20 cells</td></tr>
+        <tr><td><code>split-flap-clock</code></td><td>Split-flap</td><td>N/A</td><td>Flip clock, 5 cells, numeric wheel</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Mono-Color Customization</h3>
+  <p>Mono-color presets (<code>flip-tile</code>, <code>led-mono</code>, <code>led-mono-green</code>, <code>led-mono-amber</code>) accept a custom color override:</p>
+  <div class="code-wrap">
+    <pre><code>// Override mono preset color
+const sign = new Marquee('#el', {
+  preset: 'led-mono',
+  color: '#ff00ff'   // purple instead of default red
+});
+
+// Or change it later:
+sign.setColor('#00ffcc');</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <p>To bypass mono-color restriction entirely (allow multi-color on a mono preset), use <code>forceMultiColor: true</code>:</p>
+  <div class="code-wrap">
+    <pre><code>const sign = new Marquee('#el', {
+  preset: 'flip-tile',
+  forceMultiColor: true  // enables full color on mono preset
+});</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+</section>
+
+<!-- ============================================= -->
+<!-- ANIMATION PHASES                              -->
+<!-- ============================================= -->
+<section id="phases">
+  <h2>Animation Phases</h2>
+  <p>Phases are the building blocks of sign sequences. Each step in a sequence specifies a phase type and its parameters. Phases are stateless factories &mdash; the renderer doesn't know which phase is active.</p>
+
+  <h3>Movement: scroll-left, scroll-right, slide-in, slide-out</h3>
+  <div data-docs-demo="phase-movement" class="demo-box">
+    <p class="demo-label">scroll-left to center, pause, slide-out</p>
+    <div class="sign-wrap"><div id="demo-phase-move"></div></div>
+  </div>
+  <div class="code-wrap">
+    <pre><code>sign.sequence([
+  { text: 'SCROLL IN', phase: 'scroll-left', until: 'center', speed: 100 },
+  { phase: 'pause', duration: 1000 },
+  { phase: 'slide-out', duration: 600, from: 'right' }
+]);</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Visibility: fade-in, fade-out, flash</h3>
+  <div data-docs-demo="phase-visibility" class="demo-box">
+    <p class="demo-label">fade-in, flash, fade-out</p>
+    <div class="sign-wrap"><div id="demo-phase-vis"></div></div>
+  </div>
+  <div class="code-wrap">
+    <pre><code>sign.sequence([
+  { text: 'FADE & FLASH', phase: 'fade-in', duration: 800, color: '#ffaa00' },
+  { phase: 'flash', times: 4, interval: 200, color: '#ffff00' },
+  { phase: 'fade-out', duration: 600 }
+]);</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Position: float-up, float-down</h3>
+  <div data-docs-demo="phase-float" class="demo-box">
+    <p class="demo-label">fade-in then float-up</p>
+    <div class="sign-wrap"><div id="demo-phase-float"></div></div>
+  </div>
+  <div class="code-wrap">
+    <pre><code>sign.sequence([
+  { text: 'FLOATING', phase: 'fade-in', duration: 600, color: '#ff88cc' },
+  { phase: 'pause', duration: 800 },
+  { phase: 'float-up', duration: 800, distance: 60, easing: 'ease-out' }
+]);</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Reveal: wipe-in, wipe-out</h3>
+  <div data-docs-demo="phase-wipe" class="demo-box">
+    <p class="demo-label">wipe-in, pause, wipe-out</p>
+    <div class="sign-wrap"><div id="demo-phase-wipe"></div></div>
+  </div>
+  <div class="code-wrap">
+    <pre><code>sign.sequence([
+  { text: 'WIPE REVEAL', phase: 'wipe-in', duration: 800, color: '#00cc99' },
+  { phase: 'pause', duration: 1500 },
+  { phase: 'wipe-out', duration: 800 }
+]);</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Meta: random</h3>
+  <div data-docs-demo="phase-random" class="demo-box">
+    <p class="demo-label">random picks a different phase each loop</p>
+    <div class="sign-wrap"><div id="demo-phase-random"></div></div>
+  </div>
+  <div class="code-wrap">
+    <pre><code>sign.sequence([
+  { text: 'SURPRISE!', phase: 'random', color: '#ff3300', speed: 100, duration: 1500 },
+  { phase: 'pause', duration: 1000 },
+  { phase: 'fade-out', duration: 500 }
+]);</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Phase Options Reference</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Phase</th><th>Key Options</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>scroll-left</code></td><td><code>speed</code>, <code>until</code>, <code>easing</code></td><td>120px/s, offscreen</td><td>Scroll text from right to left</td></tr>
+        <tr><td><code>scroll-right</code></td><td><code>speed</code>, <code>until</code>, <code>easing</code></td><td>120px/s, offscreen</td><td>Scroll text from left to right</td></tr>
+        <tr><td><code>slide-in</code></td><td><code>duration</code>, <code>from</code>, <code>easing</code></td><td>600ms, right</td><td>Slide text in from edge to center</td></tr>
+        <tr><td><code>slide-out</code></td><td><code>duration</code>, <code>from</code>, <code>easing</code></td><td>600ms, left</td><td>Slide text from center off-screen</td></tr>
+        <tr><td><code>flash</code></td><td><code>times</code>, <code>interval</code></td><td>3, 300ms</td><td>Toggle visibility N times</td></tr>
+        <tr><td><code>pause</code></td><td><code>duration</code></td><td>1000ms</td><td>Hold current text in place</td></tr>
+        <tr><td><code>fade-in</code></td><td><code>duration</code>, <code>easing</code></td><td>600ms</td><td>Fade text in from transparent</td></tr>
+        <tr><td><code>fade-out</code></td><td><code>duration</code>, <code>easing</code></td><td>600ms</td><td>Fade text out to transparent</td></tr>
+        <tr><td><code>float-up</code></td><td><code>duration</code>, <code>distance</code>, <code>easing</code></td><td>800ms, 60px</td><td>Float text upward</td></tr>
+        <tr><td><code>float-down</code></td><td><code>duration</code>, <code>distance</code>, <code>easing</code></td><td>800ms, 60px</td><td>Float text downward</td></tr>
+        <tr><td><code>wipe-in</code></td><td><code>duration</code>, <code>easing</code></td><td>800ms</td><td>Reveal text left-to-right</td></tr>
+        <tr><td><code>wipe-out</code></td><td><code>duration</code>, <code>easing</code></td><td>800ms</td><td>Hide text left-to-right</td></tr>
+        <tr><td><code>split-flap</code></td><td><code>duration</code></td><td>3000ms</td><td>Flip-clock character cycling</td></tr>
+        <tr><td><code>random</code></td><td><code>speed</code>, <code>duration</code></td><td>&mdash;</td><td>Randomly picks from other phases</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>The <code>until</code> Property</h3>
+  <p>Controls where scroll phases stop:</p>
+  <ul style="margin: 8px 0 12px 24px; color: #ccc;">
+    <li><code>'center'</code> &mdash; stop when text is centered</li>
+    <li><code>'offscreen'</code> &mdash; scroll until completely off-screen (default)</li>
+    <li><code>number</code> &mdash; stop at a specific pixel offset</li>
+  </ul>
+
+  <h3>Easing Functions</h3>
+  <p>Available easing values: <code>linear</code> (default), <code>ease-in</code>, <code>ease-out</code>, <code>ease-in-out</code>, <code>step</code>.</p>
+</section>
+
+<!-- ============================================= -->
+<!-- COLORS                                        -->
+<!-- ============================================= -->
+<section id="colors">
+  <h2>Colors</h2>
+  <p>The <code>color</code> property on each step supports three formats: a single string, an array for per-character striping, or a function for computed colors.</p>
+
+  <h3>String (single color)</h3>
+  <div class="code-wrap">
+    <pre><code>{ text: 'HELLO', phase: 'scroll-left', color: '#ff3300' }</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Array (per-character repeating)</h3>
+  <div data-docs-demo="color-array" class="demo-box">
+    <p class="demo-label">Red, white, blue stripes repeating per character</p>
+    <div class="sign-wrap"><div id="demo-color-array"></div></div>
+  </div>
+  <div class="code-wrap">
+    <pre><code>{ text: 'AMERICA!', phase: 'scroll-left',
+  color: ['#ff0000', '#ffffff', '#0066ff'],
+  until: 'center', speed: 80 }</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Function (computed)</h3>
+  <div data-docs-demo="color-fn" class="demo-box">
+    <p class="demo-label">Rainbow colors via HSL function</p>
+    <div class="sign-wrap"><div id="demo-color-fn"></div></div>
+  </div>
+  <div class="code-wrap">
+    <pre><code>{ text: 'RAINBOW TEXT', phase: 'scroll-left',
+  color: (i) => `hsl(${i * 25}, 100%, 55%)`,
+  until: 'center', speed: 80 }</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Horizontal Stripes</h3>
+  <p>Set <code>stripeDirection: 'horizontal'</code> to color by row instead of by character. The color array maps to dot rows:</p>
+  <div class="code-wrap">
+    <pre><code>// 3 bands of 3 rows each (9 rows total)
+const bands = [
+  '#ff0000','#ff0000','#ff0000',
+  '#ffffff','#ffffff','#ffffff',
+  '#0066ff','#0066ff','#0066ff'
+];
+
+{ text: 'USA', phase: 'scroll-left',
+  color: bands, stripeDirection: 'horizontal' }</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+</section>
+
+<!-- ============================================= -->
+<!-- TOKENS                                        -->
+<!-- ============================================= -->
+<section id="tokens">
+  <h2>Tokens</h2>
+  <p>Token placeholders in text are replaced with live values. Use <code>liveTokens: true</code> on a step to re-resolve tokens every animation frame (useful for clocks).</p>
+
+  <h3>Built-in Tokens</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Token</th><th>Output</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td><code>{time}</code></td><td>HH:MM AM/PM</td><td>2:45 PM</td></tr>
+        <tr><td><code>{date}</code></td><td>MM/DD/YYYY</td><td>01/15/2026</td></tr>
+        <tr><td><code>{datetime}</code></td><td>MM/DD/YYYY HH:MM AM/PM</td><td>01/15/2026 2:45 PM</td></tr>
+        <tr><td><code>{year}</code></td><td>4-digit year</td><td>2026</td></tr>
+        <tr><td><code>{date:FORMAT}</code></td><td>Custom format</td><td><code>{date:H:i}</code> &rarr; 14:45</td></tr>
+        <tr><td><code>{data:ATTR}</code></td><td>data-ATTR from container</td><td><code>{data:city}</code> reads <code>data-city</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Date format characters: <code>Y</code> (year), <code>m</code> (month), <code>d</code> (day), <code>H</code> (24h hour), <code>g</code> (12h hour), <code>i</code> (minute), <code>s</code> (second), <code>A</code> (AM/PM), <code>F</code> (month name), <code>l</code> (weekday name).</p>
+
+  <h3>Live Clock Example</h3>
+  <div data-docs-demo="token-clock" class="demo-box">
+    <p class="demo-label">Live-updating clock with liveTokens: true</p>
+    <div class="sign-wrap"><div id="demo-token-clock"></div></div>
+  </div>
+  <div class="code-wrap">
+    <pre><code>const sign = new Marquee('#clock', {
+  preset: 'led-mono-green',
+  cols: 60, rows: 9, loop: true
+});
+
+sign.sequence([
+  { text: '{time}', phase: 'pause', duration: 60000,
+    liveTokens: true, color: '#00cc00' }
+]);
+sign.play();</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Custom Tokens</h3>
+  <div class="code-wrap">
+    <pre><code>const sign = new Marquee('#el', {
+  preset: 'led-14',
+  tokens: { greeting: 'WELCOME', count: 42 }
+});
+
+// Text: "WELCOME - VISITORS: 42"
+sign.sequence([
+  { text: '{greeting} - VISITORS: {count}',
+    phase: 'scroll-left', until: 'center' }
+]);
+
+// Update tokens later:
+sign.setTokens({ greeting: 'HELLO', count: 43 });</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+</section>
+
+<!-- ============================================= -->
+<!-- SPLIT-FLAP                                    -->
+<!-- ============================================= -->
+<section id="split-flap">
+  <h2>Split-Flap Display</h2>
+  <p>The third rendering mode simulates mechanical split-flap displays (airport departure boards, flip clocks). Characters cycle through a "wheel" with staggered flip animation.</p>
+
+  <h3>Departure Board</h3>
+  <div data-docs-demo="flap-board" class="demo-box">
+    <p class="demo-label">Cycling between flight messages</p>
+    <div class="sign-wrap"><div id="demo-flap-board"></div></div>
+  </div>
+  <div class="code-wrap">
+    <pre><code>const sign = new Marquee('#board', {
+  preset: 'split-flap', loop: true
+});
+
+sign.sequence([
+  { text: 'FLIGHT 247 ON TIME', phase: 'split-flap', duration: 4000 },
+  { phase: 'pause', duration: 2000 },
+  { text: 'GATE B12 BOARDING', phase: 'split-flap', duration: 4000 },
+  { phase: 'pause', duration: 2000 }
+]);
+sign.play();</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Flip Clock</h3>
+  <div data-docs-demo="flap-clock" class="demo-box">
+    <p class="demo-label">Live time display with numeric wheel</p>
+    <div class="sign-wrap"><div id="demo-flap-clock"></div></div>
+  </div>
+  <div class="code-wrap">
+    <pre><code>const clock = new Marquee('#clock', {
+  preset: 'split-flap-clock', loop: true
+});
+
+// Update the time every minute
+function tick() {
+  const now = new Date();
+  const h = String(now.getHours() % 12 || 12).padStart(2, ' ');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  clock.sequence([
+    { text: h + ':' + m, phase: 'split-flap', duration: 2000 },
+    { phase: 'pause', duration: 58000 }
+  ]);
+  clock.play();
+}
+tick();
+setInterval(tick, 60000);</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Split-Flap Options</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Option</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>cellCount</code></td><td>number</td><td>20</td><td>Number of character cells</td></tr>
+        <tr><td><code>charWidth</code></td><td>number</td><td>40</td><td>Width of each cell (px)</td></tr>
+        <tr><td><code>charHeight</code></td><td>number</td><td>60</td><td>Height of each cell (px)</td></tr>
+        <tr><td><code>cellGap</code></td><td>number</td><td>3</td><td>Gap between cells (px)</td></tr>
+        <tr><td><code>flipDuration</code></td><td>number</td><td>80</td><td>Duration of one flap flip (ms)</td></tr>
+        <tr><td><code>splitFlapStagger</code></td><td>number</td><td>50</td><td>Delay between cell start times (ms)</td></tr>
+        <tr><td><code>splitFlapCase</code></td><td>string</td><td>'upper'</td><td>'upper' or 'mixed'</td></tr>
+        <tr><td><code>wheelOrder</code></td><td>string</td><td>null</td><td>Custom character wheel (null = A-Z0-9)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================= -->
+<!-- REMOTE CONTROL                                -->
+<!-- ============================================= -->
+<section id="remote">
+  <h2>Remote Control</h2>
+  <p>Signs can be controlled remotely via JSON files (with polling) or WebSocket connections for real-time updates.</p>
+
+  <h3>JSON File Loading</h3>
+  <p>Load a sequence from a JSON file. The file format supports options, sequences, polling, and chain-loading.</p>
+  <div class="code-wrap">
+    <pre><code>// JSON file format:
+{
+  "options": {
+    "preset": "led-14",
+    "loop": true
+  },
+  "sequence": [
+    { "text": "HELLO", "phase": "scroll-left", "color": "#ff3300", "until": "center" },
+    { "phase": "pause", "duration": 2000 },
+    { "phase": "fade-out", "duration": 500 }
+  ],
+  "refreshInterval": 30000,   // optional: self-describing poll interval (ms)
+  "loadUrl": "next-sign.json" // optional: chain-load another JSON file
+}</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+  <div class="code-wrap">
+    <pre><code>// Load and poll every 30 seconds
+sign.loadURL('/api/sign.json', { pollInterval: 30000 });
+
+// Poll at a specific time each day
+sign.loadURL('/api/daily.json', { pollAt: '06:00' });
+
+// Listen for load events
+sign.on('load', (e) => console.log('Loaded:', e.data));
+sign.on('load:error', (e) => console.error('Failed:', e.error));</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>WebSocket Live Control</h3>
+  <p>Connect to a WebSocket server for real-time sign control. The library includes a reference server implementation.</p>
+  <div class="code-wrap">
+    <pre><code>// Connect to WebSocket server
+sign.connectWS('ws://localhost:8080', {
+  reconnect: true,
+  reconnectInterval: 5000,
+  role: 'viewer',
+  token: 'optional-auth-token'
+});
+
+// Listen for connection events
+sign.on('ws:open', () => console.log('Connected'));
+sign.on('ws:close', () => console.log('Disconnected'));
+sign.on('ws:message', (msg) => console.log('Received:', msg));</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>WebSocket Protocol Actions</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Action</th><th>Params</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>sequence</code></td><td><code>steps</code>, <code>autoPlay</code></td><td>Set and optionally play a sequence</td></tr>
+        <tr><td><code>setText</code></td><td><code>text</code>, <code>phase</code>, <code>color</code></td><td>Change displayed text</td></tr>
+        <tr><td><code>play</code></td><td>&mdash;</td><td>Start/resume playback</td></tr>
+        <tr><td><code>pause</code></td><td>&mdash;</td><td>Pause playback</td></tr>
+        <tr><td><code>stop</code></td><td>&mdash;</td><td>Stop and reset</td></tr>
+        <tr><td><code>setTheme</code></td><td>any option</td><td>Change preset/theme live</td></tr>
+        <tr><td><code>setColor</code></td><td><code>color</code></td><td>Change sign color</td></tr>
+        <tr><td><code>setStuckTiles</code></td><td><code>tiles</code></td><td>Set stuck tile overrides</td></tr>
+        <tr><td><code>getStatus</code></td><td>&mdash;</td><td>Request current sign status</td></tr>
+        <tr><td><code>config</code></td><td>mixed</td><td>Catch-all config push</td></tr>
+        <tr><td><code>tokenUpdate</code></td><td><code>tokens</code></td><td>Update token values</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Running the Server</h3>
+  <div class="code-wrap">
+    <pre><code># Start the HTTP server (serves demo + admin panel + API)
+npm run serve
+
+# Start the WebSocket server (port 8080)
+npm run serve:ws
+
+# Open the admin panel to control signs:
+# http://localhost:3000/admin</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+</section>
+
+<!-- ============================================= -->
+<!-- API REFERENCE                                 -->
+<!-- ============================================= -->
+<section id="api">
+  <h2>API Reference</h2>
+
+  <h3>Constructor Options</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Option</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td colspan="4"><strong>Display</strong></td></tr>
+        <tr><td><code>preset</code></td><td>string</td><td>null</td><td>Hardware preset name (see Presets)</td></tr>
+        <tr><td><code>led</code></td><td>boolean</td><td>false</td><td>Enable LED dot-matrix mode</td></tr>
+        <tr><td><code>splitFlap</code></td><td>boolean</td><td>false</td><td>Enable split-flap mode</td></tr>
+        <tr><td><code>cols</code></td><td>number</td><td>80</td><td>LED grid columns</td></tr>
+        <tr><td><code>rows</code></td><td>number</td><td>12</td><td>LED grid rows</td></tr>
+        <tr><td><code>dotSize</code></td><td>number</td><td>4</td><td>LED dot size (px)</td></tr>
+        <tr><td><code>dotGap</code></td><td>number</td><td>1</td><td>Gap between dots (px)</td></tr>
+        <tr><td><code>dotShape</code></td><td>string</td><td>'circle'</td><td>'circle' or 'square'</td></tr>
+        <tr><td><code>dotRadius</code></td><td>string|number</td><td>'50%'</td><td>CSS border-radius for dots</td></tr>
+        <tr><td><code>background</code></td><td>string</td><td>'#111111'</td><td>Container background color</td></tr>
+        <tr><td><code>color</code></td><td>string</td><td>'#ff3300'</td><td>Default text/dot color</td></tr>
+        <tr><td><code>offColor</code></td><td>string</td><td>'#1a1a1a'</td><td>LED "off" dot color</td></tr>
+        <tr><td><code>glowAmount</code></td><td>number</td><td>0</td><td>Glow/bloom radius (px)</td></tr>
+        <tr><td><code>fontFamily</code></td><td>string</td><td>'monospace'</td><td>Modern mode font</td></tr>
+        <tr><td><code>fontSize</code></td><td>number</td><td>32</td><td>Modern mode font size (px)</td></tr>
+        <tr><td><code>scanlineEffect</code></td><td>boolean</td><td>false</td><td>Add scanline overlay</td></tr>
+        <tr><td><code>scanlineOpacity</code></td><td>number</td><td>0.08</td><td>Scanline darkness</td></tr>
+        <tr><td><code>flipAnimation</code></td><td>boolean</td><td>false</td><td>Enable flip-tile cascade animation</td></tr>
+        <tr><td><code>flipSpeed</code></td><td>number</td><td>30</td><td>Cascade delay between columns (ms)</td></tr>
+        <tr><td><code>forceMultiColor</code></td><td>boolean</td><td>false</td><td>Bypass mono-color restriction</td></tr>
+        <tr><td colspan="4"><strong>Animation</strong></td></tr>
+        <tr><td><code>speed</code></td><td>number</td><td>120</td><td>Scroll speed (px/sec)</td></tr>
+        <tr><td><code>duration</code></td><td>number</td><td>1000</td><td>Default phase duration (ms)</td></tr>
+        <tr><td><code>easing</code></td><td>string</td><td>'linear'</td><td>Default easing function</td></tr>
+        <tr><td><code>loop</code></td><td>boolean</td><td>false</td><td>Loop sequence when finished</td></tr>
+        <tr><td><code>maxFps</code></td><td>number</td><td>0</td><td>Frame rate cap (0 = unlimited)</td></tr>
+        <tr><td><code>text</code></td><td>string</td><td>&mdash;</td><td>Shortcut: auto-creates a single-step sequence</td></tr>
+        <tr><td><code>phase</code></td><td>string</td><td>'scroll-left'</td><td>Shortcut: phase for auto sequence</td></tr>
+        <tr><td colspan="4"><strong>Split-Flap</strong></td></tr>
+        <tr><td><code>cellCount</code></td><td>number</td><td>20</td><td>Number of flap cells</td></tr>
+        <tr><td><code>charWidth</code></td><td>number</td><td>40</td><td>Cell width (px)</td></tr>
+        <tr><td><code>charHeight</code></td><td>number</td><td>60</td><td>Cell height (px)</td></tr>
+        <tr><td><code>cellGap</code></td><td>number</td><td>3</td><td>Gap between cells (px)</td></tr>
+        <tr><td><code>flipDuration</code></td><td>number</td><td>80</td><td>Single flip animation (ms)</td></tr>
+        <tr><td><code>splitFlapStagger</code></td><td>number</td><td>50</td><td>Stagger delay per cell (ms)</td></tr>
+        <tr><td><code>splitFlapCase</code></td><td>string</td><td>'upper'</td><td>'upper' or 'mixed'</td></tr>
+        <tr><td><code>wheelOrder</code></td><td>string</td><td>null</td><td>Custom character wheel</td></tr>
+        <tr><td><code>fontWeight</code></td><td>string</td><td>'bold'</td><td>Flap cell font weight</td></tr>
+        <tr><td colspan="4"><strong>Hardware Simulation</strong></td></tr>
+        <tr><td><code>stuckTiles</code></td><td>object</td><td>null</td><td>Map of "row,col": "on"|"off"</td></tr>
+        <tr><td colspan="4"><strong>Tokens</strong></td></tr>
+        <tr><td><code>tokens</code></td><td>object</td><td>null</td><td>Custom token key/value map</td></tr>
+        <tr><td colspan="4"><strong>Remote</strong></td></tr>
+        <tr><td><code>reconnect</code></td><td>boolean</td><td>true</td><td>Auto-reconnect WebSocket</td></tr>
+        <tr><td><code>reconnectInterval</code></td><td>number</td><td>3000</td><td>Reconnect delay (ms)</td></tr>
+        <tr><td><code>allowedOrigins</code></td><td>array</td><td>null</td><td>Allowed origins for chain-loading</td></tr>
+        <tr><td><code>maxChainDepth</code></td><td>number</td><td>3</td><td>Max JSON chain-load depth</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Methods</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Method</th><th>Returns</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>sequence(steps)</code></td><td>this</td><td>Define an array of animation phase steps</td></tr>
+        <tr><td><code>play()</code></td><td>this</td><td>Start or resume the sequence</td></tr>
+        <tr><td><code>pause()</code></td><td>this</td><td>Pause the sequence</td></tr>
+        <tr><td><code>stop()</code></td><td>this</td><td>Stop and reset the sequence</td></tr>
+        <tr><td><code>setText(text, opts?)</code></td><td>this</td><td>Change text (opts: phase, color, speed, duration, until, autoPlay)</td></tr>
+        <tr><td><code>setTheme(opts)</code></td><td>this</td><td>Update theme/options; rebuilds renderer</td></tr>
+        <tr><td><code>setColor(color)</code></td><td>this</td><td>Change color on mono-color presets</td></tr>
+        <tr><td><code>setTokens(tokens)</code></td><td>this</td><td>Update custom token values</td></tr>
+        <tr><td><code>setStuckTiles(tiles)</code></td><td>void</td><td>Set stuck tile map (<code>{"row,col": "on"|"off"}</code>)</td></tr>
+        <tr><td><code>getFlipCounts()</code></td><td>Uint32Array|null</td><td>Get per-tile flip count (wear tracking)</td></tr>
+        <tr><td><code>loadURL(url, opts?)</code></td><td>this</td><td>Load JSON sequence from URL (opts: pollInterval, pollAt)</td></tr>
+        <tr><td><code>connectWS(url, opts?)</code></td><td>this</td><td>Connect to WebSocket server</td></tr>
+        <tr><td><code>sendWS(data)</code></td><td>this</td><td>Send data to WebSocket server</td></tr>
+        <tr><td><code>on(event, fn)</code></td><td>this</td><td>Add event listener</td></tr>
+        <tr><td><code>off(event, fn)</code></td><td>this</td><td>Remove event listener</td></tr>
+        <tr><td><code>destroy()</code></td><td>void</td><td>Clean up everything</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Events</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Event</th><th>Data</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>phaseStart</code></td><td><code>{ step, index }</code></td><td>A phase step begins</td></tr>
+        <tr><td><code>phaseEnd</code></td><td><code>{ step, index }</code></td><td>A phase step completes</td></tr>
+        <tr><td><code>sequenceEnd</code></td><td><code>{}</code></td><td>Entire sequence completes (before loop)</td></tr>
+        <tr><td><code>load</code></td><td><code>{ url, data }</code></td><td>JSON file loaded successfully</td></tr>
+        <tr><td><code>load:error</code></td><td><code>{ url, error }</code></td><td>JSON file load failed</td></tr>
+        <tr><td><code>ws:open</code></td><td><code>{}</code></td><td>WebSocket connected</td></tr>
+        <tr><td><code>ws:close</code></td><td><code>{ code, reason }</code></td><td>WebSocket disconnected</td></tr>
+        <tr><td><code>ws:message</code></td><td>parsed object</td><td>WebSocket message received</td></tr>
+        <tr><td><code>ws:error</code></td><td><code>{ error }</code></td><td>WebSocket error</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Static Members</h3>
+  <div class="code-wrap">
+    <pre><code>// Get all available preset names
+Marquee.presets  // ['flip-tile', 'flip-tile-yellow', 'bulb', ...]
+
+// Register a custom animation phase
+Marquee.registerPhase('my-phase', (step, containerWidth, textWidth, prevState, presetColors) => {
+  const state = { text: step.text, offsetX: 0, offsetY: 0, opacity: 1, visible: true, colors: [], progress: 0 };
+  return {
+    start() { /* init */ },
+    update(dt) { /* advance, return true when done */ },
+    getState() { return state; }
+  };
+});</code></pre>
+    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+  </div>
+
+  <h3>Step Configuration</h3>
+  <p>Each step in a sequence is a plain object with these common properties:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Property</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>text</code></td><td>string</td><td>Text to display (optional if continuing previous text)</td></tr>
+        <tr><td><code>phase</code></td><td>string</td><td>Phase type (see Animation Phases)</td></tr>
+        <tr><td><code>color</code></td><td>string | array | function</td><td>Color(s) for this step</td></tr>
+        <tr><td><code>speed</code></td><td>number</td><td>Scroll speed in px/sec</td></tr>
+        <tr><td><code>duration</code></td><td>number</td><td>Phase duration in ms</td></tr>
+        <tr><td><code>until</code></td><td>string | number</td><td>'center', 'offscreen', or pixel offset</td></tr>
+        <tr><td><code>easing</code></td><td>string</td><td>Easing function name</td></tr>
+        <tr><td><code>liveTokens</code></td><td>boolean</td><td>Re-resolve tokens every frame</td></tr>
+        <tr><td><code>times</code></td><td>number</td><td>Flash count</td></tr>
+        <tr><td><code>interval</code></td><td>number</td><td>Flash interval (ms)</td></tr>
+        <tr><td><code>distance</code></td><td>number</td><td>Float distance (px)</td></tr>
+        <tr><td><code>from</code></td><td>string</td><td>Slide direction: 'left' or 'right'</td></tr>
+        <tr><td><code>stripeDirection</code></td><td>string</td><td>'horizontal' for row-based coloring</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div><!-- .main-inner -->
+</div><!-- .main -->
+
+<!-- Load the UMD build -->
+<script src="dist/marquee.umd.js"></script>
+<script>
+const M = MarqueeLib.Marquee || MarqueeLib.default || MarqueeLib;
+
+// =============================================
+// HELPERS
+// =============================================
+const PRESET_DOTS = {
+  'flip-tile': [6, 2], 'flip-tile-yellow': [6, 2],
+  'bulb': [8, 3], 'bulb-theater': [10, 4],
+  'led-mono': [4, 1], 'led-mono-green': [4, 1], 'led-mono-amber': [4, 1],
+  'led-14': [4, 1], 'led-rgb': [3, 1],
+};
+
+function colsForWidth(preset, availWidth) {
+  const [dotSize, dotGap] = PRESET_DOTS[preset] || [4, 1];
+  const w = availWidth - 16; // padding
+  return Math.floor((w + dotGap) / (dotSize + dotGap));
+}
+
+function presetCols(preset) {
+  // For preset cards in the grid (constrained width)
+  const cardWidth = Math.min(window.innerWidth < 768 ? window.innerWidth - 48 : 420, 420);
+  return colsForWidth(preset, cardWidth - 32);
+}
+
+function fullCols(preset) {
+  // Full-width demos
+  const maxW = Math.min(window.innerWidth < 768 ? window.innerWidth - 48 : 880, 880);
+  return colsForWidth(preset, maxW);
+}
+
+// =============================================
+// COPY BUTTON
+// =============================================
+function copyCode(btn) {
+  const pre = btn.parentElement.querySelector('pre');
+  if (!pre) return;
+  const text = pre.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+  });
+}
+
+// =============================================
+// SIDEBAR SCROLLSPY + MOBILE DRAWER
+// =============================================
+const sidebarLinks = document.querySelectorAll('.sidebar nav a');
+const sections = document.querySelectorAll('section[id]');
+
+const scrollObserver = new IntersectionObserver((entries) => {
+  for (const entry of entries) {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      sidebarLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+      });
+    }
+  }
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(sec => scrollObserver.observe(sec));
+
+// Hash-based deep linking
+if (location.hash) {
+  const target = document.querySelector(location.hash);
+  if (target) setTimeout(() => target.scrollIntoView(), 100);
+}
+
+sidebarLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    closeSidebar();
+  });
+});
+
+// Hamburger
+const hamburger = document.getElementById('hamburger');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebar-overlay');
+
+hamburger.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+});
+
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
+}
+
+overlay.addEventListener('click', closeSidebar);
+
+// =============================================
+// DEMO LAZY INIT + PAUSE/RESUME
+// =============================================
+const demos = {}; // id -> { instances: [], initialized: false, init: fn }
+
+function registerDemo(id, initFn) {
+  demos[id] = { instances: [], initialized: false, init: initFn };
+}
+
+const demoObserver = new IntersectionObserver((entries) => {
+  for (const entry of entries) {
+    const demoId = entry.target.dataset.docsDemo;
+    const demo = demos[demoId];
+    if (!demo) continue;
+
+    if (entry.isIntersecting) {
+      if (!demo.initialized) {
+        demo.initialized = true;
+        demo.init(demo);
+      } else {
+        demo.instances.forEach(inst => inst && inst.play && inst.play());
+      }
+    } else {
+      demo.instances.forEach(inst => inst && inst.pause && inst.pause());
+    }
+  }
+}, { rootMargin: '200px' });
+
+document.querySelectorAll('[data-docs-demo]').forEach(el => {
+  demoObserver.observe(el);
+});
+
+// =============================================
+// DEMO DEFINITIONS
+// =============================================
+
+// --- Getting Started ---
+registerDemo('getting-started', (demo) => {
+  const sign = new M('#demo-start', {
+    preset: 'led-mono', cols: fullCols('led-mono'), rows: 9, loop: true
+  });
+  sign.sequence([
+    { text: 'HELLO WORLD', phase: 'scroll-left', color: '#ff2200', until: 'center', speed: 100 },
+    { phase: 'flash', times: 3, interval: 300, color: '#ffff00' },
+    { phase: 'pause', duration: 2000 },
+    { phase: 'fade-out', duration: 500 }
+  ]);
+  sign.play();
+  demo.instances.push(sign);
+});
+
+// --- Presets (all 11) ---
+registerDemo('presets', (demo) => {
+  const presetDemos = [
+    { id: 'demo-p-flip-tile', preset: 'flip-tile', text: 'GO BLUE JAYS' },
+    { id: 'demo-p-flip-tile-yellow', preset: 'flip-tile-yellow', text: 'TRANSIT INFO' },
+    { id: 'demo-p-bulb', preset: 'bulb', text: 'FIRST BANK' },
+    { id: 'demo-p-bulb-theater', preset: 'bulb-theater', text: 'NOW PLAYING' },
+    { id: 'demo-p-led-mono', preset: 'led-mono', text: 'TEMPERATURE 72F' },
+    { id: 'demo-p-led-mono-green', preset: 'led-mono-green', text: 'OPEN 24 HOURS' },
+    { id: 'demo-p-led-mono-amber', preset: 'led-mono-amber', text: 'NEXT BUS 5 MIN' },
+    { id: 'demo-p-led-14', preset: 'led-14', text: 'WELCOME' },
+    { id: 'demo-p-led-rgb', preset: 'led-rgb', text: 'FULL COLOR LED' },
+  ];
+
+  presetDemos.forEach(({ id, preset, text }) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const sign = new M('#' + id, {
+      preset, cols: presetCols(preset), rows: 9, loop: true
+    });
+    sign.sequence([
+      { text, phase: 'scroll-left', speed: 60, until: 'center' },
+      { phase: 'pause', duration: 1500 },
+      { phase: 'scroll-left', speed: 60, until: 'offscreen' },
+    ]);
+    sign.play();
+    demo.instances.push(sign);
+  });
+
+  // Split-flap preset card
+  const sfEl = document.getElementById('demo-p-split-flap');
+  if (sfEl) {
+    const sf = new M('#demo-p-split-flap', { preset: 'split-flap', loop: true });
+    sf.sequence([
+      { text: 'GATE B12 BOARDING', phase: 'split-flap', duration: 3000 },
+      { phase: 'pause', duration: 2000 },
+      { text: 'WELCOME TO DOCS', phase: 'split-flap', duration: 3000 },
+      { phase: 'pause', duration: 2000 },
+    ]);
+    sf.play();
+    demo.instances.push(sf);
+  }
+
+  // Split-flap clock preset card
+  const sfcEl = document.getElementById('demo-p-split-flap-clock');
+  if (sfcEl) {
+    const sfc = new M('#demo-p-split-flap-clock', { preset: 'split-flap-clock', loop: true });
+    const now = new Date();
+    const h = String(now.getHours() % 12 || 12).padStart(2, ' ');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    sfc.sequence([
+      { text: h + ':' + m, phase: 'split-flap', duration: 2000 },
+      { phase: 'pause', duration: 58000 },
+    ]);
+    sfc.play();
+    demo.instances.push(sfc);
+  }
+});
+
+// --- Phase demos ---
+registerDemo('phase-movement', (demo) => {
+  const sign = new M('#demo-phase-move', {
+    preset: 'led-14', cols: fullCols('led-14'), rows: 9, loop: true
+  });
+  sign.sequence([
+    { text: 'SCROLL IN', phase: 'scroll-left', color: '#4488ff', until: 'center', speed: 100 },
+    { phase: 'pause', duration: 1000 },
+    { phase: 'slide-out', duration: 600, from: 'right', color: '#4488ff' },
+  ]);
+  sign.play();
+  demo.instances.push(sign);
+});
+
+registerDemo('phase-visibility', (demo) => {
+  const sign = new M('#demo-phase-vis', {
+    preset: 'led-14', cols: fullCols('led-14'), rows: 9, loop: true
+  });
+  sign.sequence([
+    { text: 'FADE & FLASH', phase: 'fade-in', duration: 800, color: '#ffaa00' },
+    { phase: 'flash', times: 4, interval: 200, color: '#ffff00' },
+    { phase: 'pause', duration: 800 },
+    { phase: 'fade-out', duration: 600 },
+  ]);
+  sign.play();
+  demo.instances.push(sign);
+});
+
+registerDemo('phase-float', (demo) => {
+  const sign = new M('#demo-phase-float', {
+    preset: 'led-14', cols: fullCols('led-14'), rows: 12, loop: true
+  });
+  sign.sequence([
+    { text: 'FLOATING', phase: 'fade-in', duration: 600, color: '#ff88cc' },
+    { phase: 'pause', duration: 800 },
+    { phase: 'float-up', duration: 800, distance: 40, easing: 'ease-out', color: '#ff88cc' },
+    { phase: 'fade-out', duration: 300 },
+  ]);
+  sign.play();
+  demo.instances.push(sign);
+});
+
+registerDemo('phase-wipe', (demo) => {
+  const sign = new M('#demo-phase-wipe', {
+    preset: 'led-14', cols: fullCols('led-14'), rows: 9, loop: true
+  });
+  sign.sequence([
+    { text: 'WIPE REVEAL', phase: 'wipe-in', duration: 800, color: '#00cc99' },
+    { phase: 'pause', duration: 1500 },
+    { phase: 'wipe-out', duration: 800, color: '#00cc99' },
+  ]);
+  sign.play();
+  demo.instances.push(sign);
+});
+
+registerDemo('phase-random', (demo) => {
+  const sign = new M('#demo-phase-random', {
+    preset: 'led-14', cols: fullCols('led-14'), rows: 9, loop: true
+  });
+  sign.sequence([
+    { text: 'SURPRISE!', phase: 'random', color: '#ff3300', speed: 100, duration: 1500 },
+    { phase: 'pause', duration: 1000 },
+    { phase: 'fade-out', duration: 500 },
+  ]);
+  sign.play();
+  demo.instances.push(sign);
+});
+
+// --- Color demos ---
+registerDemo('color-array', (demo) => {
+  const rwb = ['#ff0000', '#ffffff', '#0066ff'];
+  const sign = new M('#demo-color-array', {
+    preset: 'led-14', cols: fullCols('led-14'), rows: 9, loop: true
+  });
+  sign.sequence([
+    { text: 'AMERICA!', phase: 'scroll-left', color: (i) => rwb[i % 3], until: 'center', speed: 80 },
+    { phase: 'pause', duration: 2000, color: (i) => rwb[i % 3] },
+    { phase: 'scroll-left', speed: 80, until: 'offscreen', color: (i) => rwb[i % 3] },
+  ]);
+  sign.play();
+  demo.instances.push(sign);
+});
+
+registerDemo('color-fn', (demo) => {
+  const sign = new M('#demo-color-fn', {
+    preset: 'led-rgb', cols: fullCols('led-rgb'), rows: 9, loop: true
+  });
+  sign.sequence([
+    { text: 'RAINBOW TEXT', phase: 'scroll-left', color: (i) => `hsl(${i * 25}, 100%, 55%)`, until: 'center', speed: 80 },
+    { phase: 'pause', duration: 2000, color: (i) => `hsl(${i * 25}, 100%, 55%)` },
+    { phase: 'fade-out', duration: 600 },
+  ]);
+  sign.play();
+  demo.instances.push(sign);
+});
+
+// --- Token clock ---
+registerDemo('token-clock', (demo) => {
+  const sign = new M('#demo-token-clock', {
+    preset: 'led-mono-green', cols: fullCols('led-mono-green'), rows: 9, loop: true
+  });
+  sign.sequence([
+    { text: '{time}', phase: 'pause', duration: 60000, liveTokens: true, color: '#00cc00' },
+  ]);
+  sign.play();
+  demo.instances.push(sign);
+});
+
+// --- Split-flap board ---
+registerDemo('flap-board', (demo) => {
+  const sign = new M('#demo-flap-board', { preset: 'split-flap', loop: true });
+  sign.sequence([
+    { text: 'FLIGHT 247 ON TIME', phase: 'split-flap', duration: 4000 },
+    { phase: 'pause', duration: 2000 },
+    { text: 'GATE B12 BOARDING', phase: 'split-flap', duration: 4000 },
+    { phase: 'pause', duration: 2000 },
+    { text: 'FLIGHT 891 DELAYED', phase: 'split-flap', duration: 4000 },
+    { phase: 'pause', duration: 2000 },
+  ]);
+  sign.play();
+  demo.instances.push(sign);
+});
+
+// --- Split-flap clock ---
+registerDemo('flap-clock', (demo) => {
+  const sign = new M('#demo-flap-clock', { preset: 'split-flap-clock', loop: true });
+  const now = new Date();
+  const h = String(now.getHours() % 12 || 12).padStart(2, ' ');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  sign.sequence([
+    { text: h + ':' + m, phase: 'split-flap', duration: 2000 },
+    { phase: 'pause', duration: 58000 },
+  ]);
+  sign.play();
+  demo.instances.push(sign);
+
+  // Update every minute
+  setInterval(() => {
+    const n = new Date();
+    const hh = String(n.getHours() % 12 || 12).padStart(2, ' ');
+    const mm = String(n.getMinutes()).padStart(2, '0');
+    sign.stop();
+    sign.sequence([
+      { text: hh + ':' + mm, phase: 'split-flap', duration: 2000 },
+      { phase: 'pause', duration: 58000 },
+    ]);
+    sign.play();
+  }, 60000);
+});
+</script>
+</body>
+</html>

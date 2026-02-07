@@ -39,3 +39,4 @@ jobs:
             server/
             server.mjs
             embed.html
+            docs.html
