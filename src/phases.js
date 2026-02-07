@@ -7,11 +7,12 @@
 
 import { EASINGS } from './defaults.js';
 import { resolveColors } from './colors.js';
+import { resolveTokens } from './tokens.js';
 
 /**
  * Create a phase instance from a step config.
  */
-export function createPhase(step, containerWidth, textWidth, prevState, presetColors) {
+export function createPhase(step, containerWidth, textWidth, prevState, presetColors, tokenContext) {
   let type = step.phase || 'pause';
 
   // 'random' picks a random animation phase
@@ -20,9 +21,28 @@ export function createPhase(step, containerWidth, textWidth, prevState, presetCo
     type = choices[Math.floor(Math.random() * choices.length)];
   }
 
+  // Resolve tokens in step text
+  if (step.text && tokenContext) {
+    step = { ...step, text: resolveTokens(step.text, tokenContext) };
+  }
+
   const factory = PHASE_REGISTRY[type];
   if (!factory) throw new Error(`Unknown phase: ${type}`);
-  return factory(step, containerWidth, textWidth, prevState, presetColors);
+  const phase = factory(step, containerWidth, textWidth, prevState, presetColors);
+
+  // For liveTokens, wrap update to re-resolve tokens each frame
+  if (step.liveTokens && tokenContext) {
+    const originalUpdate = phase.update.bind(phase);
+    const originalGetState = phase.getState.bind(phase);
+    phase.update = (dt) => {
+      const done = originalUpdate(dt);
+      const state = originalGetState();
+      state.text = resolveTokens(step.text, tokenContext);
+      return done;
+    };
+  }
+
+  return phase;
 }
 
 /**
@@ -320,6 +340,30 @@ function createSlidePhase(direction) {
   };
 }
 
+// 'split-flap' — sets text on state, renderer handles the per-character flip animation
+function createSplitFlapPhase(step, containerWidth, textWidth, prevState, presetColors) {
+  const duration = step.duration || 3000;
+  const state = makeState(step, prevState);
+  state.splitFlap = true;
+  // Center text
+  state.offsetX = (containerWidth - textWidth) / 2;
+  state.offsetY = 0;
+  let elapsed = 0;
+
+  return {
+    start() {
+      elapsed = 0;
+      state.colors = resolveColors(step.color || '#e8e8d0', state.text, 0, presetColors);
+    },
+    update(dt) {
+      elapsed += dt;
+      state.progress = Math.min(elapsed / duration, 1);
+      return elapsed >= duration;
+    },
+    getState() { return state; },
+  };
+}
+
 // --- Phase registry ---
 
 const PHASE_REGISTRY = {
@@ -335,6 +379,7 @@ const PHASE_REGISTRY = {
   'wipe-out': createWipePhase('out'),
   'slide-in': createSlidePhase('in'),
   'slide-out': createSlidePhase('out'),
+  'split-flap': createSplitFlapPhase,
 };
 
 export { PHASE_REGISTRY };

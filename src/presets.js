@@ -11,6 +11,8 @@ export const PRESETS = {
   // Animation was clunky — tiles flipped in visible waves.
   'flip-tile': {
     colors: ['#33cc33'],           // one foreground color only
+    monoColor: true,               // accepts user color override
+    defaultColor: '#33cc33',       // fallback when no user color
     background: '#111111',
     dotShape: 'square',
     dotSize: 6,
@@ -28,6 +30,8 @@ export const PRESETS = {
   // Yellow/black variant — some transit signs
   'flip-tile-yellow': {
     colors: ['#cccc00'],
+    monoColor: true,
+    defaultColor: '#cccc00',
     background: '#111111',
     dotShape: 'square',
     dotSize: 6,
@@ -87,6 +91,8 @@ export const PRESETS = {
   // Sharp dots, slight glow, very crisp.
   'led-mono': {
     colors: ['#ff2200'],
+    monoColor: true,
+    defaultColor: '#ff2200',
     background: '#0c0000',
     dotShape: 'circle',
     dotSize: 4,
@@ -102,6 +108,8 @@ export const PRESETS = {
 
   'led-mono-green': {
     colors: ['#00cc00'],
+    monoColor: true,
+    defaultColor: '#00cc00',
     background: '#000c00',
     dotShape: 'circle',
     dotSize: 4,
@@ -117,6 +125,8 @@ export const PRESETS = {
 
   'led-mono-amber': {
     colors: ['#ffaa00'],
+    monoColor: true,
+    defaultColor: '#ffaa00',
     background: '#0c0800',
     dotShape: 'circle',
     dotSize: 4,
@@ -177,6 +187,53 @@ export const PRESETS = {
     glowAmount: 2,
     transitionStyle: 'instant',
     fontWeight: 'normal',
+    scanlineEffect: false,
+  },
+  // === SPLIT-FLAP DISPLAYS ===
+  // Airport departure board / flip clock style
+
+  'split-flap': {
+    splitFlap: true,
+    cellCount: 20,
+    charWidth: 40,
+    charHeight: 60,
+    cellGap: 3,
+    flipDuration: 80,
+    splitFlapStagger: 50,
+    splitFlapCase: 'upper',
+    background: '#1a1a1a',
+    color: '#e8e8d0',
+    colors: null,
+    dotShape: 'square',
+    dotSize: 4,
+    dotGap: 1,
+    offColor: '#111',
+    glowAmount: 0,
+    transitionStyle: 'instant',
+    fontWeight: 'bold',
+    scanlineEffect: false,
+  },
+
+  'split-flap-clock': {
+    splitFlap: true,
+    cellCount: 5,
+    charWidth: 60,
+    charHeight: 90,
+    cellGap: 4,
+    flipDuration: 100,
+    splitFlapStagger: 60,
+    splitFlapCase: 'upper',
+    wheelOrder: ' 0123456789:.',
+    background: '#111111',
+    color: '#e8e8d0',
+    colors: null,
+    dotShape: 'square',
+    dotSize: 4,
+    dotGap: 1,
+    offColor: '#111',
+    glowAmount: 0,
+    transitionStyle: 'instant',
+    fontWeight: 'bold',
     scanlineEffect: false,
   },
 };

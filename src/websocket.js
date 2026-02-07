@@ -26,6 +26,12 @@ export class SignSocket {
 
     this.ws.onopen = () => {
       this.marquee.emit('ws:open', {});
+      // Send registration
+      this.send({
+        type: 'register',
+        role: this.options.role || 'viewer',
+        token: this.options.token || undefined,
+      });
     };
 
     this.ws.onmessage = (event) => {
@@ -73,6 +79,40 @@ export class SignSocket {
         break;
       case 'setTheme':
         this.marquee.setTheme(params);
+        break;
+      case 'setColor':
+        if (params.color) this.marquee.setColor(params.color);
+        break;
+      case 'setStuckTiles':
+        if (params.tiles) this.marquee.setStuckTiles(params.tiles);
+        break;
+      case 'getStatus':
+        this.send({
+          type: 'status',
+          playing: this.marquee.timeline.state === 1,
+          preset: this.marquee.options.preset || null,
+          color: this.marquee.options.color,
+        });
+        break;
+      case 'config':
+        // Catch-all global config push
+        if (params.preset || params.led) {
+          this.marquee.setTheme(params);
+        }
+        if (params.color) {
+          this.marquee.setColor(params.color);
+        }
+        if (params.stuckTiles) {
+          this.marquee.setStuckTiles(params.stuckTiles);
+        }
+        if (params.tokens) {
+          this.marquee.setTokens(params.tokens);
+        }
+        break;
+      case 'tokenUpdate':
+        if (params.tokens) {
+          this.marquee.setTokens(params.tokens);
+        }
         break;
       default:
         this.marquee.emit('ws:unknown', msg);

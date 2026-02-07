@@ -22,9 +22,13 @@ export class Marquee {
     const presetName = options.preset || null;
     const presetOpts = presetName && PRESETS[presetName] ? { ...PRESETS[presetName] } : {};
 
-    // If using a preset, force LED mode
+    // If using a preset, force LED mode (unless split-flap)
     if (presetName && PRESETS[presetName]) {
-      presetOpts.led = true;
+      if (PRESETS[presetName].splitFlap) {
+        presetOpts.splitFlap = true;
+      } else {
+        presetOpts.led = true;
+      }
     }
 
     this.options = { ...DEFAULTS, ...presetOpts, ...options };
@@ -32,7 +36,18 @@ export class Marquee {
     // If preset has a restricted color palette, store it
     this._presetColors = null;
     if (presetName && PRESETS[presetName] && PRESETS[presetName].colors) {
-      this._presetColors = PRESETS[presetName].colors;
+      this._presetColors = [...PRESETS[presetName].colors];
+    }
+
+    // Mono-color preset: allow user to override the single color
+    // forceMultiColor bypasses mono restriction (undocumented)
+    if (presetName && PRESETS[presetName] && PRESETS[presetName].monoColor && !options.forceMultiColor) {
+      if (options.color) {
+        this._presetColors = [options.color];
+        this.options.color = options.color;
+      }
+    } else if (options.forceMultiColor) {
+      this._presetColors = null; // unrestricted palette
     }
 
     // Default color from preset
@@ -50,11 +65,28 @@ export class Marquee {
     // Create renderer
     this.renderer = new Renderer(this.container, this.options);
 
+    // Auto-detect mobile for performance cap
+    if (!this.options.maxFps && typeof navigator !== 'undefined' && /Mobi|Android/i.test(navigator.userAgent)) {
+      this.options.maxFps = 30;
+    }
+
     // Create timeline
     this.timeline = new Timeline(this.renderer, {
       loop: this.options.loop,
       presetColors: this._presetColors,
+      maxFps: this.options.maxFps || 0,
     });
+
+    // Token context for text replacements
+    this.timeline.tokenContext = {
+      container: this.container,
+      tokens: options.tokens || {},
+    };
+
+    // Stuck tiles
+    if (options.stuckTiles) {
+      this.renderer.setStuckTiles(options.stuckTiles);
+    }
 
     // Event listeners
     this._listeners = {};
@@ -143,9 +175,21 @@ export class Marquee {
     if (opts.preset && PRESETS[opts.preset]) {
       const presetOpts = PRESETS[opts.preset];
       Object.assign(this.options, presetOpts, opts);
-      this.options.led = true;
-      this._presetColors = presetOpts.colors || null;
+      if (presetOpts.splitFlap) {
+        this.options.splitFlap = true;
+        this.options.led = false;
+      } else {
+        this.options.led = true;
+        this.options.splitFlap = false;
+      }
+      this._presetColors = presetOpts.colors ? [...presetOpts.colors] : null;
       this.options._preset = presetOpts;
+      // Mono-color override (unless forceMultiColor)
+      if (presetOpts.monoColor && !this.options.forceMultiColor) {
+        if (opts.color) this._presetColors = [opts.color];
+      } else if (this.options.forceMultiColor) {
+        this._presetColors = null;
+      }
     }
 
     this.renderer.destroy();
@@ -202,7 +246,7 @@ export class Marquee {
     return this;
   }
 
-  _applyLoadedData(data) {
+  _applyLoadedData(data, depth = 0) {
     // Apply options if provided
     if (data.options) {
       if (data.options.preset || data.options.led) {
@@ -210,6 +254,50 @@ export class Marquee {
       } else {
         Object.assign(this.options, data.options);
         this.timeline.options.loop = this.options.loop;
+      }
+    }
+
+    // Self-describing refresh interval
+    if (data.refreshInterval && data.refreshInterval > 0 && this._pollUrl) {
+      this._stopPolling();
+      const doLoad = async () => {
+        try {
+          const resp = await fetch(this._pollUrl, { cache: 'no-store' });
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const newData = await resp.json();
+          this._applyLoadedData(newData);
+          this.emit('load', { url: this._pollUrl, data: newData });
+        } catch (e) {
+          this.emit('load:error', { url: this._pollUrl, error: e });
+        }
+      };
+      this._pollTimer = setInterval(doLoad, data.refreshInterval);
+    }
+
+    // Chain-loading: load another URL from JSON
+    if (data.loadUrl && depth < (this.options.maxChainDepth || 3)) {
+      const allowed = this.options.allowedOrigins;
+      let isAllowed = false;
+      try {
+        const loadOrigin = new URL(data.loadUrl, window.location.href).origin;
+        if (!allowed || loadOrigin === window.location.origin) {
+          isAllowed = true;
+        } else if (Array.isArray(allowed) && allowed.includes(loadOrigin)) {
+          isAllowed = true;
+        }
+      } catch (_urlErr) {
+        // Invalid URL — skip chain-loading
+      }
+
+      if (isAllowed) {
+        fetch(data.loadUrl, { cache: 'no-store' })
+          .then(resp => {
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            return resp.json();
+          })
+          .then(chainData => this._applyLoadedData(chainData, depth + 1))
+          .catch(e => this.emit('load:error', { url: data.loadUrl, error: e }));
+        return; // Don't apply sequence yet — chain will handle it
       }
     }
 
@@ -286,6 +374,48 @@ export class Marquee {
     if (this._listeners[event]) {
       this._listeners[event].forEach(fn => fn(data));
     }
+  }
+
+  /**
+   * Update the sign color for mono-color presets.
+   */
+  setColor(color) {
+    if (this.options._preset && this.options._preset.monoColor && !this.options.forceMultiColor) {
+      this._presetColors = [color];
+      this.options.color = color;
+      this.timeline.presetColors = this._presetColors;
+    } else {
+      this.options.color = color;
+    }
+    return this;
+  }
+
+  /**
+   * Set stuck tiles for simulated hardware failures.
+   * @param {object} tiles - Map of "row,col": "on"|"off"
+   */
+  setStuckTiles(tiles) {
+    this.renderer.setStuckTiles(tiles);
+    return this;
+  }
+
+  /**
+   * Get the flip count for each tile (wear tracking).
+   * @returns {Uint32Array|null}
+   */
+  getFlipCounts() {
+    return this.renderer.getFlipCounts();
+  }
+
+  /**
+   * Set custom token values for text replacement.
+   * @param {object} tokens - key/value map
+   */
+  setTokens(tokens) {
+    if (this.timeline.tokenContext) {
+      this.timeline.tokenContext.tokens = tokens;
+    }
+    return this;
   }
 
   /**

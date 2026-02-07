@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marquee Admin Panel</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    h1 { color: #ff6644; font-family: monospace; text-align: center; margin-bottom: 4px; }
+    .subtitle { color: #888; text-align: center; font-size: 0.85em; margin-bottom: 20px; }
+
+    /* Tabs */
+    .admin-nav {
+      max-width: 1000px; margin: 0 auto 20px;
+      display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;
+    }
+    .admin-nav button {
+      background: #16213e; color: #888; border: 1px solid #333;
+      padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 0.85em;
+    }
+    .admin-nav button:hover { border-color: #666; color: #ccc; }
+    .admin-nav button.active { background: #2a2a5a; border-color: #ff6644; color: #ff6644; }
+
+    /* Sections */
+    .admin-section {
+      max-width: 1000px; margin: 0 auto 20px;
+      background: #16213e; border-radius: 12px; padding: 20px;
+      border: 1px solid #333; display: none;
+    }
+    .admin-section.visible { display: block; }
+    .admin-section h2 {
+      color: #aaa; font-size: 0.85em; text-transform: uppercase;
+      letter-spacing: 2px; margin-bottom: 15px;
+    }
+
+    /* Dashboard */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px; margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #0f0f2a; border-radius: 8px; padding: 16px;
+      border: 1px solid #333; text-align: center;
+    }
+    .stat-card .label { color: #888; font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; }
+    .stat-card .value { color: #ff6644; font-size: 2em; font-weight: bold; font-family: monospace; }
+
+    /* Quick push */
+    .quick-push { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .quick-push button {
+      background: #2a2a4a; color: #ddd; border: 1px solid #444;
+      padding: 8px 16px; border-radius: 6px; cursor: pointer;
+    }
+    .quick-push button:hover { background: #3a3a6a; border-color: #666; }
+
+    /* Preview */
+    .preview-wrap {
+      display: flex; justify-content: center;
+      margin: 15px 0; padding: 12px;
+      background: #0a0a1a; border-radius: 8px;
+    }
+
+    /* Forms */
+    label { color: #aaa; font-size: 0.8em; display: block; margin-bottom: 4px; }
+    input, textarea, select {
+      background: #0f0f2a; color: #e0e0e0; border: 1px solid #333;
+      border-radius: 6px; padding: 8px 12px; font-size: 0.85em; width: 100%;
+      font-family: monospace;
+    }
+    input:focus, textarea:focus, select:focus { border-color: #ff6644; outline: none; }
+    textarea { min-height: 300px; resize: vertical; }
+
+    .form-row { margin-bottom: 12px; }
+    .form-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+    .btn {
+      background: #ff6644; color: #fff; border: none;
+      padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 0.85em;
+    }
+    .btn:hover { background: #ff7755; }
+    .btn-secondary { background: #2a2a4a; color: #ddd; border: 1px solid #444; }
+    .btn-secondary:hover { background: #3a3a6a; }
+    .btn-danger { background: #662222; }
+    .btn-danger:hover { background: #883333; }
+
+    /* Sequence list */
+    .seq-list { list-style: none; }
+    .seq-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border-bottom: 1px solid #222;
+    }
+    .seq-item:hover { background: #1a1a3e; }
+    .seq-name { color: #ff6644; font-family: monospace; font-weight: bold; }
+    .seq-actions { display: flex; gap: 6px; }
+    .seq-actions button { font-size: 0.75em; padding: 4px 10px; }
+
+    /* Viewers table */
+    table { width: 100%; border-collapse: collapse; }
+    th { color: #888; font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; text-align: left; padding: 8px; }
+    td { padding: 8px; border-bottom: 1px solid #222; font-size: 0.85em; }
+
+    /* Schedule */
+    .schedule-entry {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid #222;
+    }
+    .schedule-entry .time { color: #00ff88; font-family: monospace; }
+
+    /* Status */
+    .ws-indicator {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #ff3333; margin-right: 6px;
+    }
+    .ws-indicator.connected { background: #00cc44; }
+
+    /* Color picker */
+    .color-input { display: flex; align-items: center; gap: 8px; }
+    .color-input input[type="color"] { width: 40px; height: 32px; padding: 0; border: none; cursor: pointer; }
+
+    /* Stuck tile grid */
+    .tile-grid {
+      display: grid; gap: 2px; margin: 12px 0;
+      background: #0a0a1a; padding: 8px; border-radius: 8px; overflow: auto;
+    }
+    .tile-cell {
+      width: 12px; height: 12px; border-radius: 1px;
+      background: #222; cursor: pointer;
+    }
+    .tile-cell.stuck-on { background: #ff6644; }
+    .tile-cell.stuck-off { background: #003300; }
+  </style>
+</head>
+<body>
+  <h1>MARQUEE ADMIN</h1>
+  <p class="subtitle"><span class="ws-indicator" id="ws-indicator"></span>Control panel for marquee sign network</p>
+
+  <nav class="admin-nav">
+    <button class="active" data-tab="dashboard">Dashboard</button>
+    <button data-tab="sequences">Sequences</button>
+    <button data-tab="config">Global Config</button>
+    <button data-tab="scheduler">Scheduler</button>
+    <button data-tab="viewers">Viewers</button>
+  </nav>
+
+  <!-- DASHBOARD -->
+  <div class="admin-section visible" data-section="dashboard">
+    <h2>Dashboard</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="label">Connected Viewers</div>
+        <div class="value" id="viewer-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Active Sequence</div>
+        <div class="value" id="active-seq-name" style="font-size:1em;">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Saved Sequences</div>
+        <div class="value" id="seq-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Schedule Entries</div>
+        <div class="value" id="schedule-count">0</div>
+      </div>
+    </div>
+
+    <h2>Quick Push</h2>
+    <div class="quick-push">
+      <button onclick="quickPush('HELLO WORLD')">Hello World</button>
+      <button onclick="quickPush('WELCOME')">Welcome</button>
+      <button onclick="quickPush('PLEASE STAND BY')">Stand By</button>
+      <button onclick="quickPush('CLOSED')">Closed</button>
+    </div>
+
+    <h2>Preview</h2>
+    <div class="preview-wrap"><div id="admin-preview"></div></div>
+  </div>
+
+  <!-- SEQUENCES -->
+  <div class="admin-section" data-section="sequences">
+    <h2>Sequences</h2>
+    <ul class="seq-list" id="seq-list"></ul>
+
+    <h2 style="margin-top:20px;">Create / Edit Sequence</h2>
+    <div class="form-row">
+      <label>Sequence Name</label>
+      <input type="text" id="seq-name" placeholder="my-sequence">
+    </div>
+    <div class="form-row">
+      <label>Sequence JSON</label>
+      <textarea id="seq-json">{
+  "options": { "loop": true },
+  "steps": [
+    { "text": "HELLO WORLD", "phase": "scroll-left", "color": "#ff3300", "until": "center", "speed": 100 },
+    { "phase": "pause", "duration": 2000 },
+    { "phase": "fade-out", "duration": 500 }
+  ]
+}</textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="saveSequence()">Save</button>
+      <button class="btn btn-secondary" onclick="pushSequence()">Push to Viewers</button>
+      <button class="btn btn-secondary" onclick="previewSequence()">Preview</button>
+    </div>
+    <div class="preview-wrap" style="margin-top:12px;"><div id="seq-preview"></div></div>
+  </div>
+
+  <!-- GLOBAL CONFIG -->
+  <div class="admin-section" data-section="config">
+    <h2>Global Configuration</h2>
+    <div class="form-row">
+      <label>Preset</label>
+      <select id="cfg-preset">
+        <option value="">None</option>
+        <option value="flip-tile">Flip-Tile Green</option>
+        <option value="flip-tile-yellow">Flip-Tile Yellow</option>
+        <option value="bulb">Bulb</option>
+        <option value="bulb-theater">Theater</option>
+        <option value="led-mono">LED Mono Red</option>
+        <option value="led-mono-green">LED Mono Green</option>
+        <option value="led-mono-amber">LED Mono Amber</option>
+        <option value="led-14">LED 14-Color</option>
+        <option value="led-rgb">LED RGB</option>
+        <option value="split-flap">Split-Flap</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Color</label>
+      <div class="color-input">
+        <input type="color" id="cfg-color" value="#ff3300">
+        <input type="text" id="cfg-color-hex" value="#ff3300" style="width:120px;">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="applyConfig()">Apply & Push to Viewers</button>
+    </div>
+
+    <h2 style="margin-top:20px;">Stuck Tiles</h2>
+    <p style="color:#888;font-size:0.8em;margin-bottom:8px;">Click tiles to toggle stuck on (red) / stuck off (green) / normal</p>
+    <div class="tile-grid" id="tile-grid" style="grid-template-columns: repeat(80, 12px);"></div>
+    <div class="form-actions">
+      <button class="btn" onclick="applyStuckTiles()">Apply Stuck Tiles</button>
+      <button class="btn btn-secondary" onclick="clearStuckTiles()">Clear All</button>
+    </div>
+  </div>
+
+  <!-- SCHEDULER -->
+  <div class="admin-section" data-section="scheduler">
+    <h2>Schedule</h2>
+    <div id="schedule-list"></div>
+
+    <h2 style="margin-top:20px;">Add Schedule Entry</h2>
+    <div class="form-row">
+      <label>Sequence</label>
+      <select id="sched-sequence"></select>
+    </div>
+    <div class="form-row">
+      <label>Type</label>
+      <select id="sched-type" onchange="toggleSchedFields()">
+        <option value="time">Time Range</option>
+        <option value="cron">Cron</option>
+      </select>
+    </div>
+    <div class="form-row" id="sched-time-fields">
+      <label>Start Time</label>
+      <input type="time" id="sched-start" value="09:00">
+      <label style="margin-top:8px;">End Time</label>
+      <input type="time" id="sched-end" value="17:00">
+    </div>
+    <div class="form-row" id="sched-cron-fields" style="display:none;">
+      <label>Cron Expression (min hour dom month dow)</label>
+      <input type="text" id="sched-cron" placeholder="0 8 * * 1-5">
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="addScheduleEntry()">Add Entry</button>
+    </div>
+  </div>
+
+  <!-- VIEWERS -->
+  <div class="admin-section" data-section="viewers">
+    <h2>Connected Viewers</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Role</th><th>Connected</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="viewer-list"></tbody>
+    </table>
+    <div class="form-actions" style="margin-top:12px;">
+      <button class="btn btn-secondary" onclick="refreshViewers()">Refresh</button>
+    </div>
+  </div>
+
+  <script>
+    // === State ===
+    let ws = null;
+    let adminToken = null;
+    const BASE = window.location.origin;
+
+    // === Auth headers ===
+    function authHeaders() {
+      return { 'Authorization': 'Basic ' + btoa('admin:marquee') };
+    }
+
+    async function api(method, path, body) {
+      const opts = { method, headers: { ...authHeaders(), 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(BASE + path, opts);
+      return res.json();
+    }
+
+    // === WebSocket ===
+    function connectWS() {
+      const wsUrl = 'ws://' + window.location.host;
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = async () => {
+        document.getElementById('ws-indicator').classList.add('connected');
+        // Get admin token
+        const data = await api('POST', '/api/admin/token');
+        adminToken = data.token;
+        ws.send(JSON.stringify({ type: 'register', role: 'admin', token: adminToken }));
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'stats') {
+            document.getElementById('viewer-count').textContent = msg.viewers;
+          }
+        } catch (_e) { /* ignore */ }
+      };
+
+      ws.onclose = () => {
+        document.getElementById('ws-indicator').classList.remove('connected');
+        setTimeout(connectWS, 3000);
+      };
+    }
+
+    // === Tab switching ===
+    let activeTab = 'dashboard';
+    document.querySelectorAll('.admin-nav button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('visible'));
+        document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
+        const tab = btn.dataset.tab;
+        document.querySelector(`[data-section="${tab}"]`).classList.add('visible');
+        btn.classList.add('active');
+        activeTab = tab;
+        if (tab === 'sequences') loadSequences();
+        if (tab === 'scheduler') loadSchedule();
+        if (tab === 'viewers') refreshViewers();
+      });
+    });
+
+    // === Sequences ===
+    async function loadSequences() {
+      const seqs = await api('GET', '/api/admin/sequences');
+      const list = document.getElementById('seq-list');
+      list.innerHTML = '';
+      const names = Object.keys(seqs);
+      document.getElementById('seq-count').textContent = names.length;
+
+      for (const name of names) {
+        const li = document.createElement('li');
+        li.className = 'seq-item';
+        li.innerHTML = `
+          <span class="seq-name">${name}</span>
+          <span class="seq-actions">
+            <button class="btn btn-secondary" onclick="editSequence('${name}')">Edit</button>
+            <button class="btn btn-secondary" onclick="activateSequence('${name}')">Activate</button>
+            <button class="btn btn-danger" onclick="deleteSequence('${name}')">Delete</button>
+          </span>
+        `;
+        list.appendChild(li);
+      }
+    }
+
+    async function editSequence(name) {
+      const seqs = await api('GET', '/api/admin/sequences');
+      const seq = seqs[name];
+      if (seq) {
+        document.getElementById('seq-name').value = name;
+        document.getElementById('seq-json').value = JSON.stringify(seq, null, 2);
+      }
+    }
+
+    async function saveSequence() {
+      const name = document.getElementById('seq-name').value.trim();
+      if (!name) return alert('Enter a sequence name');
+      try {
+        const data = JSON.parse(document.getElementById('seq-json').value);
+        await api('PUT', '/api/admin/sequences/' + encodeURIComponent(name), data);
+        loadSequences();
+      } catch (e) {
+        alert('Invalid JSON: ' + e.message);
+      }
+    }
+
+    async function deleteSequence(name) {
+      if (!confirm('Delete sequence "' + name + '"?')) return;
+      await api('DELETE', '/api/admin/sequences/' + encodeURIComponent(name));
+      loadSequences();
+    }
+
+    async function activateSequence(name) {
+      if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'admin:activate', sequence: name }));
+      }
+      document.getElementById('active-seq-name').textContent = name;
+    }
+
+    function pushSequence() {
+      try {
+        const data = JSON.parse(document.getElementById('seq-json').value);
+        if (ws && ws.readyState === 1) {
+          ws.send(JSON.stringify({ type: 'admin:push', sequence: data }));
+        }
+      } catch (e) {
+        alert('Invalid JSON: ' + e.message);
+      }
+    }
+
+    function previewSequence() {
+      // Placeholder — would instantiate a Marquee on seq-preview
+      alert('Preview requires the Marquee library loaded. Use the demo page for preview.');
+    }
+
+    // === Quick Push ===
+    function quickPush(text) {
+      const sequence = {
+        options: { loop: true },
+        steps: [
+          { text, phase: 'scroll-left', color: '#ff3300', until: 'center', speed: 100 },
+          { phase: 'pause', duration: 3000 },
+          { phase: 'fade-out', duration: 500 },
+        ],
+      };
+      if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'admin:push', sequence }));
+      }
+    }
+
+    // === Config ===
+    document.getElementById('cfg-color').addEventListener('input', (e) => {
+      document.getElementById('cfg-color-hex').value = e.target.value;
+    });
+    document.getElementById('cfg-color-hex').addEventListener('input', (e) => {
+      if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
+        document.getElementById('cfg-color').value = e.target.value;
+      }
+    });
+
+    async function applyConfig() {
+      const config = {};
+      const preset = document.getElementById('cfg-preset').value;
+      if (preset) config.preset = preset;
+      config.color = document.getElementById('cfg-color-hex').value;
+      await api('PUT', '/api/admin/config', config);
+    }
+
+    // === Stuck Tiles ===
+    const TILE_ROWS = 9;
+    const TILE_COLS = 80;
+    const stuckTileState = {}; // "row,col" -> "on"|"off"|null
+
+    function initTileGrid() {
+      const grid = document.getElementById('tile-grid');
+      grid.innerHTML = '';
+      for (let r = 0; r < TILE_ROWS; r++) {
+        for (let c = 0; c < TILE_COLS; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'tile-cell';
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cell.addEventListener('click', () => toggleTile(r, c, cell));
+          grid.appendChild(cell);
+        }
+      }
+    }
+
+    function toggleTile(row, col, cell) {
+      const key = row + ',' + col;
+      const current = stuckTileState[key];
+      if (!current) {
+        stuckTileState[key] = 'on';
+        cell.className = 'tile-cell stuck-on';
+      } else if (current === 'on') {
+        stuckTileState[key] = 'off';
+        cell.className = 'tile-cell stuck-off';
+      } else {
+        delete stuckTileState[key];
+        cell.className = 'tile-cell';
+      }
+    }
+
+    async function applyStuckTiles() {
+      const tiles = {};
+      for (const [key, value] of Object.entries(stuckTileState)) {
+        tiles[key] = value;
+      }
+      if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'admin:config', config: { stuckTiles: tiles } }));
+      }
+    }
+
+    function clearStuckTiles() {
+      for (const key of Object.keys(stuckTileState)) delete stuckTileState[key];
+      document.querySelectorAll('.tile-cell').forEach(c => c.className = 'tile-cell');
+    }
+
+    // === Schedule ===
+    function toggleSchedFields() {
+      const type = document.getElementById('sched-type').value;
+      document.getElementById('sched-time-fields').style.display = type === 'time' ? '' : 'none';
+      document.getElementById('sched-cron-fields').style.display = type === 'cron' ? '' : 'none';
+    }
+
+    async function loadSchedule() {
+      const schedule = await api('GET', '/api/admin/schedule');
+      const list = document.getElementById('schedule-list');
+      list.innerHTML = '';
+      document.getElementById('schedule-count').textContent = schedule.length;
+
+      for (const entry of schedule) {
+        const div = document.createElement('div');
+        div.className = 'schedule-entry';
+        const timeStr = entry.start ? `${entry.start} - ${entry.end}` : `cron: ${entry.cron}`;
+        div.innerHTML = `
+          <span class="time">${timeStr}</span>
+          <span>${entry.sequence || '—'}</span>
+          <button class="btn btn-danger" style="font-size:0.75em;padding:4px 8px;" onclick="removeScheduleEntry('${entry.id}')">Remove</button>
+        `;
+        list.appendChild(div);
+      }
+
+      // Update sequence dropdown
+      const seqs = await api('GET', '/api/admin/sequences');
+      const select = document.getElementById('sched-sequence');
+      select.innerHTML = '';
+      for (const name of Object.keys(seqs)) {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      }
+    }
+
+    async function addScheduleEntry() {
+      const sequence = document.getElementById('sched-sequence').value;
+      const type = document.getElementById('sched-type').value;
+      const entry = { sequence };
+      if (type === 'time') {
+        entry.start = document.getElementById('sched-start').value;
+        entry.end = document.getElementById('sched-end').value;
+      } else {
+        entry.cron = document.getElementById('sched-cron').value;
+      }
+      await api('POST', '/api/admin/schedule', entry);
+      loadSchedule();
+    }
+
+    async function removeScheduleEntry(id) {
+      await api('DELETE', '/api/admin/schedule/' + id);
+      loadSchedule();
+    }
+
+    // === Viewers ===
+    async function refreshViewers() {
+      const list = await api('GET', '/api/admin/viewers');
+      const tbody = document.getElementById('viewer-list');
+      tbody.innerHTML = '';
+      for (const v of list) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${v.id}</td>
+          <td>${v.role}</td>
+          <td>${new Date(v.connectedAt).toLocaleTimeString()}</td>
+          <td><button class="btn btn-secondary" style="font-size:0.75em;padding:3px 8px;" onclick="pushToViewer('${v.id}')">Push</button></td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function pushToViewer(viewerId) {
+      const text = prompt('Message to push:');
+      if (!text) return;
+      const sequence = {
+        options: { loop: true },
+        steps: [
+          { text, phase: 'scroll-left', color: '#ff3300', until: 'center', speed: 100 },
+          { phase: 'pause', duration: 3000 },
+        ],
+      };
+      if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'admin:push', viewerId, sequence }));
+      }
+    }
+
+    // === Init ===
+    initTileGrid();
+    connectWS();
+    loadSequences();
+  </script>
+</body>
+</html>

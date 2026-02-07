@@ -198,9 +198,240 @@
     }
 
     /* ===== BUILDER ===== */
+    .builder-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      background: #0f0f2a;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+    .builder-toolbar label {
+      font-size: 0.75em;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .builder-toolbar select,
+    .builder-toolbar input[type="number"],
+    .builder-toolbar input[type="color"] {
+      background: #1a1a3e;
+      color: #ddd;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-size: 0.8em;
+    }
+    .builder-toolbar input[type="color"] {
+      width: 28px; height: 24px; padding: 0; border: none; cursor: pointer;
+    }
+    .builder-toolbar input[type="number"] { width: 52px; }
+    .builder-toolbar .play-btn {
+      background: #00aa44;
+      color: #fff;
+      border: none;
+      padding: 6px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.85em;
+    }
+    .builder-toolbar .play-btn:hover { background: #00cc55; }
+    .builder-toolbar .stop-btn {
+      background: #aa3333;
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85em;
+    }
+    .builder-toolbar .stop-btn:hover { background: #cc4444; }
+
+    .builder-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+      margin-top: 14px;
+    }
+    @media (max-width: 700px) {
+      .builder-panels { grid-template-columns: 1fr; }
+    }
+
+    /* Step list */
+    .builder-gui { max-height: 540px; overflow-y: auto; }
+    .step-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .step-card {
+      background: #0f0f2a;
+      border: 1px solid #333;
+      border-left: 4px solid #555;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .step-card[data-cat="scroll"]   { border-left-color: #4488ff; }
+    .step-card[data-cat="fade"]     { border-left-color: #aa66ff; }
+    .step-card[data-cat="flash"]    { border-left-color: #ffcc00; }
+    .step-card[data-cat="pause"]    { border-left-color: #666; }
+    .step-card[data-cat="wipe"]     { border-left-color: #ff6644; }
+    .step-card[data-cat="slide"]    { border-left-color: #44ccaa; }
+    .step-card[data-cat="float"]    { border-left-color: #ff88cc; }
+    .step-card[data-cat="flap"]     { border-left-color: #ccaa44; }
+    .step-card[data-cat="random"]   { border-left-color: #aaa; }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: 0.8em;
+      color: #ccc;
+    }
+    .step-header:hover { background: #1a1a3e; }
+    .step-header .step-phase {
+      font-weight: bold;
+      color: #00ccff;
+      min-width: 80px;
+    }
+    .step-header .step-preview {
+      color: #888;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .step-header .step-actions {
+      display: flex;
+      gap: 2px;
+    }
+    .step-header .step-actions button {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      padding: 2px 5px;
+      font-size: 0.9em;
+      border-radius: 3px;
+    }
+    .step-header .step-actions button:hover {
+      background: #2a2a4a;
+      color: #ddd;
+    }
+
+    .step-body {
+      display: none;
+      padding: 8px 10px;
+      border-top: 1px solid #222;
+    }
+    .step-card.expanded .step-body { display: block; }
+
+    .step-body .field-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .step-body .field-row label {
+      font-size: 0.72em;
+      color: #888;
+      min-width: 55px;
+      text-align: right;
+    }
+    .step-body .field-row input,
+    .step-body .field-row select {
+      background: #1a1a3e;
+      color: #ddd;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 3px 6px;
+      font-size: 0.8em;
+      flex: 1;
+      max-width: 200px;
+    }
+    .step-body .field-row input[type="color"] {
+      width: 28px; height: 22px; padding: 0; border: none; flex: none; cursor: pointer;
+    }
+    .step-body .field-row input[type="range"] {
+      flex: 1; max-width: 140px;
+    }
+    .step-body .range-val {
+      font-size: 0.72em;
+      color: #00ff88;
+      min-width: 36px;
+    }
+
+    /* Add step bar */
+    .add-step-bar {
+      position: relative;
+      margin-top: 8px;
+    }
+    .add-step-btn {
+      background: #1a3a1a;
+      color: #00aa44;
+      border: 1px dashed #00aa44;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8em;
+      width: 100%;
+    }
+    .add-step-btn:hover { background: #224422; }
+    .add-step-menu {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      background: #16213e;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 4px;
+      margin-bottom: 4px;
+      z-index: 10;
+    }
+    .add-step-menu.open { display: block; }
+    .add-step-menu button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      color: #ccc;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 0.8em;
+      border-radius: 4px;
+    }
+    .add-step-menu button:hover { background: #2a2a5a; }
+
+    /* Code editor */
+    .builder-code { display: flex; flex-direction: column; }
+    .code-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .code-toolbar button {
+      background: #2a2a4a;
+      color: #ddd;
+      border: 1px solid #444;
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75em;
+    }
+    .code-toolbar button:hover { background: #3a3a6a; }
+
     .builder textarea {
       width: 100%;
-      min-height: 300px;
+      min-height: 460px;
       background: #0f0f2a;
       color: #00ff88;
       border: 1px solid #333;
@@ -209,9 +440,16 @@
       font-family: monospace;
       font-size: 0.85em;
       resize: vertical;
+      tab-size: 2;
     }
-
-    .builder .controls { margin-top: 10px; }
+    .builder textarea.json-error {
+      border-color: #ff3333;
+    }
+    .builder .json-error-msg {
+      color: #ff3333;
+      font-size: 0.75em;
+      min-height: 1.2em;
+    }
 
     .ws-status {
       font-size: 0.75em;
@@ -242,6 +480,19 @@
       display: none;
     }
     .demo-mode-indicator.active { display: block; }
+
+    /* ===== Mobile Responsive ===== */
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      h1 { font-size: 1.4em; }
+      .demo-nav button { padding: 5px 10px; font-size: 0.7em; }
+      .demo-section { padding: 12px; }
+      .sign-wrap { overflow-x: auto; }
+      .preset-grid { grid-template-columns: 1fr; }
+      .preset-card { padding: 10px; }
+      .controls { gap: 4px; }
+      .controls button { padding: 5px 10px; font-size: 0.75em; }
+    }
   </style>
 </head>
 <body>
@@ -259,6 +510,8 @@
     <button data-tab="modern">Modern Text</button>
     <button data-tab="polling">Live Polling</button>
     <button data-tab="presets">All Presets</button>
+    <button data-tab="split-flap">Split-Flap</button>
+    <button data-tab="websocket">WebSocket</button>
     <button data-tab="builder">Builder</button>
   </nav>
   <p class="demo-mode-indicator" id="demo-mode-indicator">Demo mode — auto-rotating every 8 seconds</p>
@@ -307,6 +560,14 @@
       <button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button>
     </div>
     <div class="json-preview" id="json-america"></div>
+
+    <h2 style="margin-top:20px;">Tri-Color on Flip-Tile (Mono Preset)</h2>
+    <p class="desc">Same red/white/blue config on a flip-tile preset — notice all colors snap to green because flip-tiles have a single-color palette</p>
+    <div class="sign-wrap"><div id="demo-america-mono"></div></div>
+
+    <h2 style="margin-top:20px;">Tri-Color on Flip-Tile (forceMultiColor)</h2>
+    <p class="desc">Secret setting: <code>forceMultiColor: true</code> — bypasses the mono-color restriction. Impossible on real hardware, but fun.</p>
+    <div class="sign-wrap"><div id="demo-america-multi"></div></div>
 
     <h2 style="margin-top:20px;">Tri-Color Stripe — Horizontal</h2>
     <p class="desc">Rows of color across the sign — stripeDirection: 'horizontal'</p>
@@ -438,51 +699,97 @@
   </div>
 
   <!-- ============================================= -->
+  <!-- SPLIT-FLAP: Airport departure board           -->
+  <!-- ============================================= -->
+  <div class="demo-section" data-demo="split-flap">
+    <h2>Split-Flap Display</h2>
+    <p class="desc">Airport departure board / flip clock style — each character position cycles through a character wheel</p>
+    <div class="sign-wrap"><div id="demo-split-flap"></div></div>
+    <div class="controls">
+      <button onclick="signs.splitFlap && signs.splitFlap.play()">Play</button>
+      <button onclick="signs.splitFlap && signs.splitFlap.stop()">Stop</button>
+      <button class="show-json-btn" onclick="toggleJson(this)">Show JSON</button>
+    </div>
+    <div class="json-preview" id="json-split-flap"></div>
+
+    <h2 style="margin-top:20px;">Split-Flap Clock</h2>
+    <p class="desc">Alarm clock variant with numeric wheel</p>
+    <div class="sign-wrap"><div id="demo-split-flap-clock"></div></div>
+  </div>
+
+  <!-- ============================================= -->
+  <!-- WEBSOCKET LIVE CONTROL                        -->
+  <!-- ============================================= -->
+  <div class="demo-section" data-demo="websocket">
+    <h2>WebSocket Live Control</h2>
+    <p class="desc">Connect this sign to the WebSocket server, then use the <a href="/admin" target="_blank" style="color:#ff6644">Admin Panel</a> to push sequences, change text, and control playback in real time</p>
+    <div class="sign-wrap"><div id="demo-ws"></div></div>
+    <div class="controls" style="margin-bottom:10px;">
+      <input type="text" id="ws-url" value="" placeholder="ws://localhost:8080" style="background:#0f0f2a; color:#00ff88; border:1px solid #444; border-radius:6px; padding:6px 10px; font-family:monospace; font-size:0.8em; width:240px;">
+      <button id="ws-connect-btn" onclick="toggleWsConnection()">Connect</button>
+      <button onclick="signs.ws && signs.ws.stop()">Stop</button>
+      <span id="ws-status" style="font-size:0.75em; color:#666; margin-left:8px;">Disconnected</span>
+    </div>
+    <div id="ws-log" style="background:#0f0f2a; border:1px solid #333; border-radius:6px; padding:10px; font-family:monospace; font-size:0.72em; color:#888; max-height:200px; overflow-y:auto; white-space:pre-wrap;"></div>
+  </div>
+
+  <!-- ============================================= -->
   <!-- SEQUENCE BUILDER                              -->
   <!-- ============================================= -->
-  <div class="demo-section" data-demo="builder">
-    <h2>Sequence Builder (paste JSON)</h2>
-    <textarea id="json-input">[
-  {
-    "text": "YOUR MESSAGE HERE",
-    "phase": "scroll-left",
-    "color": "#ff3300",
-    "until": "center",
-    "speed": 100
-  },
-  {
-    "phase": "flash",
-    "times": 3,
-    "interval": 250,
-    "color": "#ffff00"
-  },
-  {
-    "phase": "pause",
-    "duration": 1000
-  },
-  {
-    "phase": "fade-out",
-    "duration": 500
-  }
-]</textarea>
-    <div class="controls">
-      <button onclick="runCustomSequence()">Run Sequence</button>
-      <button onclick="signs.builder && signs.builder.stop()">Stop</button>
-      <select id="builder-preset" onchange="rebuildCustomSign()">
-        <option value="">Modern (text)</option>
-        <option value="flip-tile">Flip-Tile Green</option>
-        <option value="flip-tile-yellow">Flip-Tile Yellow</option>
-        <option value="bulb">Bulb</option>
-        <option value="bulb-theater">Theater</option>
-        <option value="led-mono">LED Mono Red</option>
-        <option value="led-mono-green">LED Mono Green</option>
-        <option value="led-mono-amber">LED Mono Amber</option>
-        <option value="led-14" selected>LED 14-Color</option>
-        <option value="led-rgb">LED RGB</option>
-      </select>
+  <div class="demo-section builder" data-demo="builder">
+    <h2>Sequence Builder</h2>
+
+    <!-- Toolbar row -->
+    <div class="builder-toolbar">
+      <label>Preset
+        <select id="builder-preset" onchange="rebuildCustomSign()">
+          <option value="">Modern (text)</option>
+          <option value="flip-tile">Flip-Tile Green</option>
+          <option value="flip-tile-yellow">Flip-Tile Yellow</option>
+          <option value="bulb">Bulb</option>
+          <option value="bulb-theater">Theater</option>
+          <option value="led-mono">LED Mono Red</option>
+          <option value="led-mono-green">LED Mono Green</option>
+          <option value="led-mono-amber">LED Mono Amber</option>
+          <option value="led-14" selected>LED 14-Color</option>
+          <option value="led-rgb">LED RGB</option>
+          <option value="split-flap">Split-Flap</option>
+          <option value="split-flap-clock">Split-Flap Clock</option>
+        </select>
+      </label>
+      <label>Color <input type="color" id="builder-color" value="#ff3300"></label>
+      <label>Rows <input type="number" id="builder-rows" value="9" min="5" max="30"></label>
+      <label><input type="checkbox" id="builder-loop"> Loop</label>
+      <button class="play-btn" onclick="runFromGui()">Play</button>
+      <button class="stop-btn" onclick="signs.builder && signs.builder.stop()">Stop</button>
     </div>
-    <div class="sign-wrap" style="margin-top:12px;"><div id="demo-custom"></div></div>
-    <p class="ws-status">WebSocket: <code>sign.connectWS('ws://localhost:8080')</code> | JSON file: <code>sign.loadURL('/api/sign.json', {pollInterval: 60000})</code></p>
+
+    <!-- Full-width preview -->
+    <div class="sign-wrap"><div id="demo-custom"></div></div>
+
+    <!-- Two panels: GUI + Code -->
+    <div class="builder-panels">
+      <div class="builder-gui">
+        <div class="step-list" id="step-list"></div>
+        <div class="add-step-bar">
+          <button class="add-step-btn" id="add-step-btn" onclick="toggleAddMenu()">+ Add Step</button>
+          <div class="add-step-menu" id="add-step-menu">
+            <button onclick="addStepTemplate('message')">Add Message (scroll+pause+fade)</button>
+            <button onclick="addStepTemplate('flash')">Add Flash</button>
+            <button onclick="addStepTemplate('pause')">Add Pause</button>
+            <button onclick="addStepTemplate('transition')">Add Transition (wipe-out)</button>
+            <button onclick="addStepTemplate('custom')">Custom Step...</button>
+          </div>
+        </div>
+      </div>
+      <div class="builder-code">
+        <div class="code-toolbar">
+          <button onclick="formatJson()">Format</button>
+          <span class="json-error-msg" id="json-error"></span>
+        </div>
+        <textarea id="json-input" onkeydown="handleTabKey(event)" oninput="debouncedJsonToGui()"></textarea>
+      </div>
+    </div>
   </div>
 
   <!-- Load the UMD build -->
@@ -540,17 +847,18 @@
       'led-14': [4, 1], 'led-rgb': [3, 1],
     };
 
-    // Calculate columns to fill the container (max-width 960px, 20px section padding, 8px sign padding each side)
+    // Calculate columns to fill the container — responsive to viewport
     function colsForContainer(preset) {
       const [dotSize, dotGap] = PRESET_DOTS[preset] || [4, 1];
-      const availWidth = 920 - 16; // 960 - 2*20 section padding - 2*8 sign padding
+      const availWidth = Math.min(window.innerWidth - 40, 920) - 16;
       return Math.floor((availWidth + dotGap) / (dotSize + dotGap));
     }
 
     // For preset cards in the 2-column grid (roughly half width)
     function colsForCard(preset) {
       const [dotSize, dotGap] = PRESET_DOTS[preset] || [4, 1];
-      const availWidth = 420 - 32 - 16; // card min-width - card padding - sign padding
+      const cardWidth = window.innerWidth < 600 ? Math.min(window.innerWidth - 40, 420) : 420;
+      const availWidth = cardWidth - 32 - 16;
       return Math.floor((availWidth + dotGap) / (dotSize + dotGap));
     }
 
@@ -620,6 +928,28 @@
         signs.america.play();
         showConfig('json-america', opts, steps);
 
+        // Mono-preset version — shows color snapping
+        const monoOpts = { preset: 'flip-tile', cols: colsForContainer('flip-tile'), rows: 9, loop: true };
+        const monoSteps = [
+          { text, phase: 'scroll-left', color, until: 'center', speed: 100 },
+          { phase: 'pause', duration: 2000, color },
+          { phase: 'scroll-left', speed: 80, until: 'offscreen', color },
+        ];
+        signs.americaMono = new M('#demo-america-mono', monoOpts);
+        signs.americaMono.sequence(monoSteps);
+        signs.americaMono.play();
+
+        // Multi-color flip-tile — forceMultiColor bypasses mono restriction
+        const multiOpts = { preset: 'flip-tile', cols: colsForContainer('flip-tile'), rows: 9, loop: true, forceMultiColor: true };
+        const multiSteps = [
+          { text, phase: 'scroll-left', color, until: 'center', speed: 100 },
+          { phase: 'pause', duration: 2000, color },
+          { phase: 'scroll-left', speed: 80, until: 'offscreen', color },
+        ];
+        signs.americaMulti = new M('#demo-america-multi', multiOpts);
+        signs.americaMulti.sequence(multiSteps);
+        signs.americaMulti.play();
+
         // Horizontal stripe version — 3 solid bands (3 rows each)
         const bands = ['#ff0000','#ff0000','#ff0000', '#ffffff','#ffffff','#ffffff', '#0066ff','#0066ff','#0066ff'];
         const hOpts = { preset: 'led-14', cols: colsForContainer('led-14'), rows: 9, loop: true };
@@ -636,13 +966,20 @@
       },
 
       flip() {
-        const texts = ['WASECA SIGN', 'FLIP TILES', 'HELLO WORLD'];
-        const opts = { preset: 'flip-tile', cols: colsForContainer('flip-tile'), rows: 9, loop: true };
+        const texts = [
+          'WASECA SENIOR HIGH SCHOOL',
+          'HOME OF THE BLUEJAYS',
+          'GO BLUE JAYS!   GO BLUE JAYS!   GO BLUE JAYS!',
+          '94F   DRINK DIET DR PEPPER',
+          'BOOSTER CLUB MEETING TONIGHT 7PM',
+          'FRIDAY FOOTBALL VS WATERVILLE 7PM',
+        ];
+        const opts = { preset: 'flip-tile', cols: colsForContainer('flip-tile'), rows: 14, loop: true };
         const steps = [];
         for (const msg of texts) {
-          steps.push({ text: msg, phase: 'fade-in', duration: 600 });
-          steps.push({ phase: 'pause', duration: 2000 });
-          steps.push({ phase: 'fade-out', duration: 600 });
+          steps.push({ text: msg, phase: 'wipe-in', duration: 800 });
+          steps.push({ phase: 'pause', duration: 2500 });
+          steps.push({ phase: 'wipe-out', duration: 800 });
         }
         signs.flip = new M('#demo-flip-featured', opts);
         signs.flip.sequence(steps);
@@ -705,7 +1042,7 @@
         }
 
         signs._presets = [];
-        signs._presets.push(makePresetDemo('demo-p-flip', 'json-p-flip', 'flip-tile', 'WASECA SIGN'));
+        signs._presets.push(makePresetDemo('demo-p-flip', 'json-p-flip', 'flip-tile', 'GO BLUE JAYS'));
         signs._presets.push(makePresetDemo('demo-p-flip-yellow', 'json-p-flipy', 'flip-tile-yellow', 'TRANSIT INFO'));
         signs._presets.push(makePresetDemo('demo-p-bulb', 'json-p-bulb', 'bulb', 'FIRST BANK'));
         signs._presets.push(makePresetDemo('demo-p-theater', 'json-p-theater', 'bulb-theater', 'NOW PLAYING'));
@@ -732,26 +1069,128 @@
         signs._presets.push(makePresetDemo('demo-p-led-rgb', 'json-p-rgb', 'led-rgb', 'FULL COLOR LED'));
       },
 
+      'split-flap'() {
+        const opts = { preset: 'split-flap', loop: true };
+        const steps = [
+          { text: 'FLIGHT 247 ON TIME', phase: 'split-flap', duration: 4000 },
+          { phase: 'pause', duration: 2000 },
+          { text: 'GATE B12 BOARDING', phase: 'split-flap', duration: 4000 },
+          { phase: 'pause', duration: 2000 },
+          { text: 'FLIGHT 891 DELAYED', phase: 'split-flap', duration: 4000 },
+          { phase: 'pause', duration: 2000 },
+          { text: 'WELCOME TO WASECA', phase: 'split-flap', duration: 4000 },
+          { phase: 'pause', duration: 2000 },
+        ];
+        signs.splitFlap = new M('#demo-split-flap', opts);
+        signs.splitFlap.sequence(steps);
+        signs.splitFlap.play();
+        showConfig('json-split-flap', opts, steps);
+
+        // Clock variant
+        const clockOpts = { preset: 'split-flap-clock', loop: true };
+        const now = new Date();
+        const timeStr = String(now.getHours() % 12 || 12).padStart(2, ' ') + ':' + String(now.getMinutes()).padStart(2, '0');
+        const clockSteps = [
+          { text: timeStr, phase: 'split-flap', duration: 2000, liveTokens: true },
+          { phase: 'pause', duration: 58000 },
+        ];
+        signs.splitFlapClock = new M('#demo-split-flap-clock', clockOpts);
+        signs.splitFlapClock.sequence(clockSteps);
+        signs.splitFlapClock.play();
+      },
+
+      websocket() {
+        const opts = { preset: 'led-14', cols: colsForContainer('led-14'), rows: 9, loop: true };
+        signs.ws = new M('#demo-ws', opts);
+        // Show a waiting message
+        signs.ws.sequence([
+          { text: 'WAITING FOR SERVER', phase: 'scroll-left', color: '#666666', until: 'center', speed: 60 },
+          { phase: 'pause', duration: 2000 },
+          { phase: 'fade-out', duration: 500 },
+        ]);
+        signs.ws.play();
+
+        // Auto-detect WebSocket URL (same hostname, port 8080)
+        const wsUrlInput = document.getElementById('ws-url');
+        wsUrlInput.value = 'ws://' + window.location.hostname + ':8080';
+      },
+
       builder() {
-        function createCustomSign(preset) {
+        function createCustomSign(preset, rows, loop) {
+          const r = rows || 9;
+          const l = !!loop;
           const opts = preset
-            ? { preset, cols: colsForContainer(preset), rows: 9, loop: false }
-            : { fontSize: 32, color: '#ff3300', background: '#111', loop: false };
+            ? { preset, cols: colsForContainer(preset), rows: r, loop: l }
+            : { fontSize: 32, color: '#ff3300', background: '#111', loop: l };
           return new M('#demo-custom', opts);
         }
         signs.builder = createCustomSign('led-14');
-        // Expose rebuild function
         window._createCustomSign = createCustomSign;
+
+        // Populate initial steps into GUI + JSON
+        builderSteps = [
+          { text: 'YOUR MESSAGE HERE', phase: 'scroll-left', color: '#ff3300', until: 'center', speed: 100 },
+          { phase: 'flash', times: 3, interval: 250, color: '#ffff00' },
+          { phase: 'pause', duration: 1000 },
+          { phase: 'fade-out', duration: 500 },
+        ];
+        rebuildStepList();
+        syncGuiToJson();
       },
     };
+
+    // =============================================
+    // TAB → SIGN MAPPING (for pause/resume on tab switch)
+    // =============================================
+    const TAB_SIGNS = {
+      featured:     ['featured'],
+      cycling:      ['cycling'],
+      america:      ['america', 'americaMono', 'americaMulti', 'americaH'],
+      flip:         ['flip'],
+      modern:       ['modern'],
+      polling:      ['polling'],
+      presets:      ['_presets'],
+      'split-flap': ['splitFlap', 'splitFlapClock'],
+      websocket:    ['ws'],
+      builder:      ['builder'],
+    };
+
+    function pauseTabSigns(tabName) {
+      const keys = TAB_SIGNS[tabName] || [];
+      for (const key of keys) {
+        const s = signs[key];
+        if (!s) continue;
+        if (Array.isArray(s)) {
+          s.forEach(inst => inst && inst.pause && inst.pause());
+        } else if (s.pause) {
+          s.pause();
+        }
+      }
+    }
+
+    function resumeTabSigns(tabName) {
+      const keys = TAB_SIGNS[tabName] || [];
+      for (const key of keys) {
+        const s = signs[key];
+        if (!s) continue;
+        if (Array.isArray(s)) {
+          s.forEach(inst => inst && inst.play && inst.play());
+        } else if (s.play) {
+          s.play();
+        }
+      }
+    }
 
     // =============================================
     // TAB SWITCHING
     // =============================================
     let activeTab = 'featured';
 
-    function switchTab(tabName) {
+    function switchTab(tabName, updateHash) {
       if (tabName === activeTab && initialized[tabName]) return;
+
+      // Pause signs on the tab we're leaving
+      if (initialized[activeTab]) pauseTabSigns(activeTab);
 
       // Hide all sections
       document.querySelectorAll('.demo-section').forEach(el => el.classList.remove('visible'));
@@ -769,9 +1208,17 @@
       if (!initialized[tabName] && demoInits[tabName]) {
         initialized[tabName] = true;
         demoInits[tabName]();
+      } else {
+        // Resume signs on the tab we're entering
+        resumeTabSigns(tabName);
       }
 
       activeTab = tabName;
+
+      // Update URL hash for bookmarkable tabs
+      if (updateHash !== false) {
+        history.replaceState(null, '', '#' + tabName);
+      }
     }
 
     // Wire up nav clicks
@@ -786,7 +1233,7 @@
     // DEMO MODE (auto-rotation)
     // =============================================
     let demoModeTimer = null;
-    const demoTabs = ['featured', 'cycling', 'america', 'flip', 'modern', 'polling', 'presets', 'builder'];
+    const demoTabs = ['featured', 'cycling', 'america', 'flip', 'modern', 'polling', 'presets', 'split-flap', 'websocket', 'builder'];
     let demoTabIndex = 0;
 
     function toggleDemoMode() {
@@ -820,35 +1267,494 @@
     }
 
     // =============================================
+    // WEBSOCKET HELPERS (global scope)
+    // =============================================
+    let wsConnected = false;
+
+    function wsLog(msg) {
+      const el = document.getElementById('ws-log');
+      if (!el) return;
+      const time = new Date().toLocaleTimeString();
+      el.textContent += '[' + time + '] ' + msg + '\n';
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function setWsStatus(text, color) {
+      const el = document.getElementById('ws-status');
+      if (el) { el.textContent = text; el.style.color = color; }
+    }
+
+    function toggleWsConnection() {
+      if (wsConnected) {
+        // Disconnect
+        if (signs.ws && signs.ws._socket) {
+          signs.ws._socket.destroy();
+        }
+        wsConnected = false;
+        setWsStatus('Disconnected', '#666');
+        document.getElementById('ws-connect-btn').textContent = 'Connect';
+        wsLog('Disconnected by user');
+        return;
+      }
+
+      const url = document.getElementById('ws-url').value.trim();
+      if (!url) return;
+
+      wsLog('Connecting to ' + url + '...');
+      setWsStatus('Connecting...', '#ffaa00');
+
+      signs.ws.connectWS(url, { reconnect: true, reconnectInterval: 5000 });
+
+      signs.ws.on('ws:open', () => {
+        wsConnected = true;
+        setWsStatus('Connected', '#00cc00');
+        document.getElementById('ws-connect-btn').textContent = 'Disconnect';
+        wsLog('Connected! Open the Admin Panel to control this sign.');
+      });
+
+      signs.ws.on('ws:close', (e) => {
+        wsConnected = false;
+        setWsStatus('Disconnected', '#666');
+        document.getElementById('ws-connect-btn').textContent = 'Connect';
+        wsLog('Connection closed' + (e.reason ? ': ' + e.reason : ''));
+      });
+
+      signs.ws.on('ws:error', () => {
+        wsLog('Connection error — is the WebSocket server running? (npm run serve:ws)');
+        setWsStatus('Error', '#ff3333');
+      });
+
+      signs.ws.on('ws:message', (data) => {
+        const action = data && data.action ? data.action : 'unknown';
+        wsLog('Received: ' + action + (data.text ? ' "' + data.text + '"' : ''));
+      });
+
+      signs.ws.on('phaseStart', (e) => {
+        const step = e.step || {};
+        if (step.text) {
+          wsLog('Playing: ' + step.phase + ' "' + step.text + '"');
+        }
+      });
+    }
+
+    // =============================================
     // BUILDER HELPERS (global scope)
     // =============================================
-    function runCustomSequence() {
-      try {
-        const json = document.getElementById('json-input').value;
-        const steps = JSON.parse(json);
-        if (signs.builder) {
-          signs.builder.stop();
-          signs.builder.sequence(steps);
-          signs.builder.play();
+
+    // --- Phase field configuration ---
+    const PHASE_FIELDS = {
+      'scroll-left':  { text: true, color: true, speed: true, until: true, easing: true },
+      'scroll-right': { text: true, color: true, speed: true, until: true, easing: true },
+      'slide-in':     { text: true, color: true, duration: true, from: true, easing: true },
+      'slide-out':    { duration: true, from: true, easing: true },
+      'flash':        { times: true, interval: true, color: true },
+      'pause':        { duration: true },
+      'float-up':     { duration: true, distance: true, easing: true },
+      'float-down':   { duration: true, distance: true, easing: true },
+      'fade-in':      { text: true, color: true, duration: true, easing: true },
+      'fade-out':     { duration: true, easing: true },
+      'wipe-in':      { text: true, color: true, duration: true, easing: true },
+      'wipe-out':     { duration: true, easing: true },
+      'split-flap':   { text: true, duration: true },
+      'random':       { text: true, color: true, speed: true, duration: true, easing: true },
+    };
+
+    const PHASE_CATEGORY = {
+      'scroll-left': 'scroll', 'scroll-right': 'scroll',
+      'slide-in': 'slide', 'slide-out': 'slide',
+      'flash': 'flash', 'pause': 'pause',
+      'float-up': 'float', 'float-down': 'float',
+      'fade-in': 'fade', 'fade-out': 'fade',
+      'wipe-in': 'wipe', 'wipe-out': 'wipe',
+      'split-flap': 'flap', 'random': 'random',
+    };
+
+    const PHASE_DEFAULTS = {
+      'scroll-left':  { text: 'HELLO', color: '#ff3300', speed: 100, until: 'center' },
+      'scroll-right': { text: 'HELLO', color: '#ff3300', speed: 100, until: 'center' },
+      'slide-in':     { text: 'HELLO', color: '#ff3300', duration: 600, from: 'left' },
+      'slide-out':    { duration: 600, from: 'left' },
+      'flash':        { times: 3, interval: 250, color: '#ffff00' },
+      'pause':        { duration: 1000 },
+      'float-up':     { duration: 600, distance: 50 },
+      'float-down':   { duration: 600, distance: 50 },
+      'fade-in':      { text: 'HELLO', color: '#00cc00', duration: 800 },
+      'fade-out':     { duration: 500 },
+      'wipe-in':      { text: 'HELLO', color: '#ff3300', duration: 800 },
+      'wipe-out':     { duration: 800 },
+      'split-flap':   { text: 'HELLO', duration: 4000 },
+      'random':       { text: 'HELLO', color: '#ff3300', speed: 100, duration: 2000 },
+    };
+
+    let builderSteps = [];
+    let jsonSyncPaused = false;
+
+    // --- Tab key in textarea ---
+    function handleTabKey(e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const ta = e.target;
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(end);
+        ta.selectionStart = ta.selectionEnd = start + 2;
+      }
+    }
+
+    // --- Build a step card DOM element ---
+    function buildStepCard(step, index) {
+      const phase = step.phase || 'pause';
+      const cat = PHASE_CATEGORY[phase] || 'pause';
+      const fields = PHASE_FIELDS[phase] || {};
+
+      const card = document.createElement('div');
+      card.className = 'step-card';
+      card.dataset.cat = cat;
+      card.dataset.index = index;
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'step-header';
+      header.innerHTML =
+        '<span class="step-phase">' + phase + '</span>' +
+        '<span class="step-preview">' + (step.text ? step.text.substring(0, 30) : '') + '</span>' +
+        '<span class="step-actions">' +
+          '<button title="Move up" onclick="event.stopPropagation(); moveStep(' + index + ',' + (index - 1) + ')">&#9650;</button>' +
+          '<button title="Move down" onclick="event.stopPropagation(); moveStep(' + index + ',' + (index + 1) + ')">&#9660;</button>' +
+          '<button title="Delete" onclick="event.stopPropagation(); removeStep(' + index + ')">&#10005;</button>' +
+        '</span>';
+      header.addEventListener('click', () => card.classList.toggle('expanded'));
+      card.appendChild(header);
+
+      // Body
+      const body = document.createElement('div');
+      body.className = 'step-body';
+
+      // Phase selector
+      body.appendChild(makeFieldRow('Phase', makePhaseSelect(phase, index)));
+
+      // Context-sensitive fields
+      if (fields.text) body.appendChild(makeFieldRow('Text', makeInput('text', step.text || '', index)));
+      if (fields.color) body.appendChild(makeFieldRow('Color', makeColorInput(step.color || '#ff3300', index)));
+      if (fields.speed) body.appendChild(makeFieldRow('Speed', makeRange('speed', step.speed || 100, 20, 300, index)));
+      if (fields.until) body.appendChild(makeFieldRow('Until', makeRadio('until', ['center', 'offscreen'], step.until || 'center', index)));
+      if (fields.duration) body.appendChild(makeFieldRow('Duration', makeRange('duration', step.duration || 500, 100, 5000, index)));
+      if (fields.times) body.appendChild(makeFieldRow('Times', makeRange('times', step.times || 3, 1, 20, index)));
+      if (fields.interval) body.appendChild(makeFieldRow('Interval', makeRange('interval', step.interval || 250, 100, 1000, index)));
+      if (fields.distance) body.appendChild(makeFieldRow('Distance', makeRange('distance', step.distance || 50, 10, 200, index)));
+      if (fields.from) body.appendChild(makeFieldRow('From', makeRadio('from', ['left', 'right'], step.from || 'left', index)));
+      if (fields.easing) body.appendChild(makeFieldRow('Easing', makeEasingSelect(step.easing || '', index)));
+
+      card.appendChild(body);
+      return card;
+    }
+
+    function makeFieldRow(label, inputEl) {
+      const row = document.createElement('div');
+      row.className = 'field-row';
+      const lbl = document.createElement('label');
+      lbl.textContent = label;
+      row.appendChild(lbl);
+      row.appendChild(inputEl);
+      return row;
+    }
+
+    function makePhaseSelect(current, idx) {
+      const sel = document.createElement('select');
+      sel.dataset.field = 'phase';
+      Object.keys(PHASE_FIELDS).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        if (p === current) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      sel.addEventListener('change', () => {
+        const newPhase = sel.value;
+        const defaults = PHASE_DEFAULTS[newPhase] || {};
+        builderSteps[idx] = { phase: newPhase, ...defaults };
+        rebuildStepList();
+        syncGuiToJson();
+      });
+      return sel;
+    }
+
+    function makeInput(field, value, idx) {
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.dataset.field = field;
+      inp.value = value;
+      inp.addEventListener('input', () => { updateStepField(idx, field, inp.value); });
+      return inp;
+    }
+
+    function makeColorInput(value, idx) {
+      const wrap = document.createElement('span');
+      wrap.style.display = 'flex';
+      wrap.style.alignItems = 'center';
+      wrap.style.gap = '4px';
+      const inp = document.createElement('input');
+      inp.type = 'color';
+      inp.dataset.field = 'color';
+      inp.value = value;
+      const txt = document.createElement('input');
+      txt.type = 'text';
+      txt.value = value;
+      txt.style.maxWidth = '80px';
+      inp.addEventListener('input', () => { txt.value = inp.value; updateStepField(idx, 'color', inp.value); });
+      txt.addEventListener('input', () => {
+        if (/^#[0-9a-fA-F]{6}$/.test(txt.value)) {
+          inp.value = txt.value;
+          updateStepField(idx, 'color', txt.value);
         }
+      });
+      wrap.appendChild(inp);
+      wrap.appendChild(txt);
+      return wrap;
+    }
+
+    function makeRange(field, value, min, max, idx) {
+      const wrap = document.createElement('span');
+      wrap.style.display = 'flex';
+      wrap.style.alignItems = 'center';
+      wrap.style.gap = '6px';
+      wrap.style.flex = '1';
+      const inp = document.createElement('input');
+      inp.type = 'range';
+      inp.min = min;
+      inp.max = max;
+      inp.value = value;
+      inp.dataset.field = field;
+      const val = document.createElement('span');
+      val.className = 'range-val';
+      val.textContent = value;
+      inp.addEventListener('input', () => { val.textContent = inp.value; updateStepField(idx, field, Number(inp.value)); });
+      wrap.appendChild(inp);
+      wrap.appendChild(val);
+      return wrap;
+    }
+
+    function makeRadio(field, options, current, idx) {
+      const wrap = document.createElement('span');
+      wrap.style.display = 'flex';
+      wrap.style.gap = '8px';
+      options.forEach(opt => {
+        const lbl = document.createElement('label');
+        lbl.style.fontSize = '0.78em';
+        lbl.style.color = '#aaa';
+        lbl.style.cursor = 'pointer';
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = field + '_' + idx;
+        radio.value = opt;
+        if (opt === current) radio.checked = true;
+        radio.addEventListener('change', () => { updateStepField(idx, field, opt); });
+        lbl.appendChild(radio);
+        lbl.append(' ' + opt);
+        wrap.appendChild(lbl);
+      });
+      return wrap;
+    }
+
+    function makeEasingSelect(current, idx) {
+      const sel = document.createElement('select');
+      sel.dataset.field = 'easing';
+      ['', 'linear', 'ease-in', 'ease-out', 'ease-in-out', 'step'].forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e;
+        opt.textContent = e || '(default)';
+        if (e === current) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      sel.addEventListener('change', () => { updateStepField(idx, 'easing', sel.value || undefined); });
+      return sel;
+    }
+
+    function updateStepField(idx, field, value) {
+      if (!builderSteps[idx]) return;
+      if (value === undefined || value === '') {
+        delete builderSteps[idx][field];
+      } else {
+        builderSteps[idx][field] = value;
+      }
+      syncGuiToJson();
+    }
+
+    // --- Rebuild step list DOM from builderSteps ---
+    function rebuildStepList() {
+      const list = document.getElementById('step-list');
+      if (!list) return;
+      list.innerHTML = '';
+      builderSteps.forEach((step, i) => {
+        list.appendChild(buildStepCard(step, i));
+      });
+    }
+
+    // --- Sync GUI → JSON textarea ---
+    function syncGuiToJson() {
+      jsonSyncPaused = true;
+      const ta = document.getElementById('json-input');
+      const errEl = document.getElementById('json-error');
+      if (ta) {
+        ta.value = JSON.stringify(builderSteps, null, 2);
+        ta.classList.remove('json-error');
+      }
+      if (errEl) errEl.textContent = '';
+      jsonSyncPaused = false;
+    }
+
+    // --- Sync JSON textarea → GUI (debounced) ---
+    let jsonToGuiTimer = null;
+    function debouncedJsonToGui() {
+      if (jsonSyncPaused) return;
+      if (jsonToGuiTimer) clearTimeout(jsonToGuiTimer);
+      jsonToGuiTimer = setTimeout(syncJsonToGui, 800);
+    }
+
+    function syncJsonToGui() {
+      const ta = document.getElementById('json-input');
+      const errEl = document.getElementById('json-error');
+      if (!ta) return;
+      try {
+        const parsed = JSON.parse(ta.value);
+        if (!Array.isArray(parsed)) throw new Error('Expected an array');
+        ta.classList.remove('json-error');
+        if (errEl) errEl.textContent = '';
+        builderSteps = parsed;
+        rebuildStepList();
       } catch (e) {
-        alert('Invalid JSON: ' + e.message);
+        ta.classList.add('json-error');
+        if (errEl) errEl.textContent = e.message;
+      }
+    }
+
+    // --- Format JSON button ---
+    function formatJson() {
+      const ta = document.getElementById('json-input');
+      const errEl = document.getElementById('json-error');
+      if (!ta) return;
+      try {
+        const parsed = JSON.parse(ta.value);
+        ta.value = JSON.stringify(parsed, null, 2);
+        ta.classList.remove('json-error');
+        if (errEl) errEl.textContent = '';
+      } catch (e) {
+        ta.classList.add('json-error');
+        if (errEl) errEl.textContent = e.message;
+      }
+    }
+
+    // --- Add / remove / move steps ---
+    function addStep(stepData) {
+      builderSteps.push(stepData);
+      rebuildStepList();
+      syncGuiToJson();
+    }
+
+    function removeStep(index) {
+      builderSteps.splice(index, 1);
+      rebuildStepList();
+      syncGuiToJson();
+    }
+
+    function moveStep(from, to) {
+      if (to < 0 || to >= builderSteps.length) return;
+      const item = builderSteps.splice(from, 1)[0];
+      builderSteps.splice(to, 0, item);
+      rebuildStepList();
+      syncGuiToJson();
+    }
+
+    // --- Add step templates ---
+    function toggleAddMenu() {
+      document.getElementById('add-step-menu').classList.toggle('open');
+    }
+
+    function addStepTemplate(template) {
+      document.getElementById('add-step-menu').classList.remove('open');
+      switch (template) {
+        case 'message':
+          addStep({ text: 'NEW MESSAGE', phase: 'scroll-left', color: '#ff3300', until: 'center', speed: 100 });
+          addStep({ phase: 'pause', duration: 1500 });
+          addStep({ phase: 'fade-out', duration: 500 });
+          break;
+        case 'flash':
+          addStep({ phase: 'flash', times: 3, interval: 250, color: '#ffff00' });
+          break;
+        case 'pause':
+          addStep({ phase: 'pause', duration: 1000 });
+          break;
+        case 'transition':
+          addStep({ phase: 'wipe-out', duration: 800 });
+          break;
+        case 'custom':
+          addStep({ phase: 'pause', duration: 500 });
+          break;
+      }
+    }
+
+    // Close add-step menu on outside click
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('add-step-menu');
+      const btn = document.getElementById('add-step-btn');
+      if (menu && !menu.contains(e.target) && e.target !== btn) {
+        menu.classList.remove('open');
+      }
+    });
+
+    // --- Run from GUI ---
+    function runFromGui() {
+      syncGuiToJson();
+      const preset = document.getElementById('builder-preset').value;
+      const rows = Number(document.getElementById('builder-rows').value) || 9;
+      const loop = document.getElementById('builder-loop').checked;
+      if (signs.builder) signs.builder.destroy();
+      if (window._createCustomSign) {
+        signs.builder = window._createCustomSign(preset, rows, loop);
+      }
+      if (signs.builder && builderSteps.length) {
+        signs.builder.sequence(builderSteps);
+        signs.builder.play();
       }
     }
 
     function rebuildCustomSign() {
       const preset = document.getElementById('builder-preset').value;
+      const rows = Number(document.getElementById('builder-rows').value) || 9;
+      const loop = document.getElementById('builder-loop').checked;
       if (signs.builder) signs.builder.destroy();
       if (window._createCustomSign) {
-        signs.builder = window._createCustomSign(preset);
+        signs.builder = window._createCustomSign(preset, rows, loop);
       }
     }
 
     // =============================================
-    // INIT: only the first visible tab
+    // INIT: restore tab from URL hash, or default to featured
     // =============================================
-    initialized.featured = true;
-    demoInits.featured();
+    const hashTab = location.hash.replace('#', '');
+    const initTab = demoInits[hashTab] ? hashTab : 'featured';
+    initialized[initTab] = true;
+    demoInits[initTab]();
+    if (initTab !== 'featured') {
+      // Show the correct section (featured is visible by default)
+      document.querySelectorAll('.demo-section').forEach(el => el.classList.remove('visible'));
+      const target = document.querySelector(`[data-demo="${initTab}"]`);
+      if (target) target.classList.add('visible');
+      document.querySelectorAll('.demo-nav button[data-tab]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === initTab);
+      });
+      activeTab = initTab;
+    }
+    history.replaceState(null, '', '#' + initTab);
+
+    // Handle browser back/forward navigation
+    window.addEventListener('hashchange', () => {
+      const tab = location.hash.replace('#', '');
+      if (demoInits[tab]) {
+        stopDemoMode();
+        switchTab(tab, false);
+      }
+    });
   </script>
 </body>
 </html>

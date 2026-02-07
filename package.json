@@ -13,23 +13,51 @@
     "./css": "./dist/marquee.css"
   },
   "files": [
-    "dist/"
+    "dist/",
+    "README.md",
+    "API.md",
+    "ARCHITECTURE.md",
+    "LICENSE",
+    "demo/",
+    "admin/",
+    "server/",
+    "embed.html",
+    "server.mjs"
   ],
   "scripts": {
     "build": "node esbuild.config.mjs",
     "serve": "node server.mjs",
     "dev": "node esbuild.config.mjs --watch",
-    "test": "node test/marquee.test.js"
+    "test": "node --test test/*.test.js",
+    "lint": "eslint src/",
+    "serve:ws": "node server/ws-server.mjs",
+    "prepublishOnly": "npm run lint && npm test && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/astoltz/marquee-sign.git"
+  },
+  "homepage": "https://github.com/astoltz/marquee-sign#readme",
+  "bugs": {
+    "url": "https://github.com/astoltz/marquee-sign/issues"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "devDependencies": {
-    "esbuild": "^0.27.2"
+    "esbuild": "^0.27.2",
+    "eslint": "^9.0.0",
+    "jsdom": "^25.0.0",
+    "ws": "^8.18.0"
   },
   "keywords": [
     "marquee",
     "scrolling-text",
     "led-sign",
     "programmable-sign",
-    "animation"
+    "animation",
+    "split-flap",
+    "flip-tile"
   ],
   "license": "MIT"
 }

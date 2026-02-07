@@ -15,6 +15,7 @@ Create a new marquee sign instance.
 |--------|------|---------|-------------|
 | `preset` | `string` | `null` | Hardware preset name (see Presets below) |
 | `led` | `boolean` | `false` | Enable LED dot-matrix rendering |
+| `splitFlap` | `boolean` | `false` | Enable split-flap rendering |
 | `dotSize` | `number` | `4` | Size of each LED dot in pixels |
 | `dotGap` | `number` | `1` | Gap between dots in pixels |
 | `cols` | `number` | `80` | Grid width in dots (LED mode) |
@@ -29,6 +30,20 @@ Create a new marquee sign instance.
 | `loop` | `boolean` | `false` | Loop the sequence |
 | `reconnect` | `boolean` | `true` | Auto-reconnect WebSocket |
 | `reconnectInterval` | `number` | `3000` | WebSocket reconnect delay (ms) |
+| `cellCount` | `number` | `20` | Number of character cells (split-flap mode) |
+| `charWidth` | `number` | `40` | Cell width in px (split-flap mode) |
+| `charHeight` | `number` | `60` | Cell height in px (split-flap mode) |
+| `cellGap` | `number` | `3` | Gap between cells in px (split-flap mode) |
+| `flipDuration` | `number` | `80` | Duration per character flip in ms (split-flap mode) |
+| `splitFlapStagger` | `number` | `50` | Delay between cell starts in ms (split-flap mode) |
+| `splitFlapCase` | `string` | `'upper'` | `'upper'` (uppercase only) or `'mixed'` (split-flap mode) |
+| `wheelOrder` | `string` | `null` | Custom character wheel string (split-flap mode) |
+| `stuckTiles` | `object` | `null` | Map of `"row,col": "on"\|"off"` for stuck tile simulation |
+| `tokens` | `object` | `null` | Custom token key/value map for text replacement |
+| `maxFps` | `number` | `0` | Frame rate cap (0 = uncapped, auto-set to 30 on mobile) |
+| `allowedOrigins` | `string[]` | `null` | Allowed origins for JSON chain-loading |
+| `maxChainDepth` | `number` | `3` | Maximum depth for JSON chain-loading |
+| `forceMultiColor` | `boolean` | `false` | Bypass mono-color restriction on presets (allows multi-color on flip-tile, led-mono, etc.) |
 
 ### Simple Usage (single phase in constructor)
 
@@ -127,9 +142,37 @@ Subscribe to events. Returns `this`.
 
 Unsubscribe from events. Returns `this`.
 
+### `sign.setColor(color)`
+
+Update the sign color for mono-color presets. For presets with `monoColor: true`, updates the palette to the single new color. Returns `this`.
+
+```js
+sign.setColor('#00ccff');
+```
+
+### `sign.setStuckTiles(tiles)`
+
+Set stuck tiles for simulated hardware failures. Tiles keyed by `"row,col"` with value `"on"` (always lit) or `"off"` (always dark). Returns `this`.
+
+```js
+sign.setStuckTiles({ '3,15': 'on', '5,22': 'off' });
+```
+
+### `sign.getFlipCounts()`
+
+Get the flip count for each tile (wear tracking). Returns `Uint32Array` or `null`.
+
+### `sign.setTokens(tokens)`
+
+Set custom token values for text replacement. Returns `this`.
+
+```js
+sign.setTokens({ location: 'GATE B12', status: 'ON TIME' });
+```
+
 ### `sign.destroy()`
 
-Clean up DOM, cancel animations, close WebSocket.
+Clean up DOM, cancel animations, close WebSocket, stop polling.
 
 ---
 
@@ -157,7 +200,7 @@ Array of available preset names.
 
 ```js
 console.log(Marquee.presets);
-// ['flip-tile', 'flip-tile-yellow', 'bulb', 'bulb-theater', 'led-mono', ...]
+// ['flip-tile', 'flip-tile-yellow', 'bulb', 'bulb-theater', 'led-mono', ..., 'split-flap', 'split-flap-clock']
 ```
 
 ### `Marquee.registerPhase(name, factory)`
@@ -179,7 +222,7 @@ Each step in a sequence is an object:
 | Property | Type | Description |
 |----------|------|-------------|
 | `text` | `string` | Text to display (inherited from previous if omitted) |
-| `phase` | `string` | Phase type: `scroll-left`, `scroll-right`, `slide-in`, `slide-out`, `flash`, `pause`, `float-up`, `float-down`, `fade-in`, `fade-out`, `wipe-in`, `wipe-out`, `random` |
+| `phase` | `string` | Phase type: `scroll-left`, `scroll-right`, `slide-in`, `slide-out`, `flash`, `pause`, `float-up`, `float-down`, `fade-in`, `fade-out`, `wipe-in`, `wipe-out`, `split-flap`, `random` |
 | `duration` | `number` | Duration in ms (timed phases) |
 | `speed` | `number` | Speed in px/sec (scroll phases) |
 | `until` | `'center' \| 'offscreen' \| number` | Scroll stop condition |
@@ -191,6 +234,7 @@ Each step in a sequence is an object:
 | `background` | `string` | Phase-specific background |
 | `easing` | `string` | Easing: `linear`, `ease-in`, `ease-out`, `ease-in-out`, `step` |
 | `stripeDirection` | `string` | `'horizontal'` to apply array colors per row instead of per character |
+| `liveTokens` | `boolean` | Re-resolve tokens every frame (for clocks/live data) |
 | `onStart` | `Function` | Callback when phase begins |
 | `onEnd` | `Function` | Callback when phase ends |
 
@@ -207,17 +251,48 @@ The server sends JSON objects with an `action` field:
 { "action": "pause" }
 { "action": "stop" }
 { "action": "setTheme", "preset": "led-14" }
+{ "action": "setColor", "color": "#00ff00" }
+{ "action": "setStuckTiles", "tiles": { "3,15": "on" } }
+{ "action": "getStatus" }
+{ "action": "config", "options": { "loop": true, "color": "#ff0000" } }
+{ "action": "tokenUpdate", "tokens": { "temp": "72F" } }
 ```
+
+Clients auto-register on connect with `{ type: "register", role: "viewer" }`. Admin clients include a token: `{ type: "register", role: "admin", token: "..." }`.
+
+The `getStatus` action causes the client to respond with its current state (playing/paused, current step, etc.).
+
+The `config` action applies global configuration changes (any Marquee option).
+
+The `tokenUpdate` action updates custom tokens for live text replacement.
+
+---
+
+## Token System
+
+Tokens in text strings are replaced at render time:
+
+| Token | Description |
+|-------|-------------|
+| `{time}` | Current time (HH:MM:SS) |
+| `{date}` | Current date (YYYY-MM-DD) |
+| `{datetime}` | Date and time combined |
+| `{year}` | Current year (4 digits) |
+| `{date:FORMAT}` | Formatted date (PHP-style: Y, m, d, H, i, s, A, g, F, l) |
+| `{data:ATTR}` | Value of `data-ATTR` attribute on the container element |
+| `{custom}` | Any key from the `tokens` option or `setTokens()` |
+
+Use `liveTokens: true` on a step to re-resolve tokens every frame.
 
 ---
 
 ## Presets
 
 ### `flip-tile`
-Waseca-style mechanical flip dots. Green on black. Square dots, no glow. Dots flip with a visible cascade delay.
+Waseca-style mechanical flip dots. Green on black (configurable color). Square dots, no glow. Dots flip with a visible cascade delay.
 
 ### `flip-tile-yellow`
-Same mechanics, yellow tiles. Common on transit signs.
+Same mechanics, yellow tiles (configurable color). Common on transit signs.
 
 ### `bulb`
 Bank-style incandescent bulbs. Amber and red. Large round dots with warm glow. Bulbs have visible warm-up and cool-down time. Occasional flicker.
@@ -226,10 +301,16 @@ Bank-style incandescent bulbs. Amber and red. Large round dots with warm glow. B
 Theater marquee. Bright white and warm tones. Larger bulbs, more glow.
 
 ### `led-mono` / `led-mono-green` / `led-mono-amber`
-Early LED signs. Single color only. Small dots with slight glow and scanline effect.
+Early LED signs. Single color only (configurable). Small dots with slight glow and scanline effect.
 
 ### `led-14`
 90s/2000s multi-color LED signs. Fixed palette of 14 colors. Any requested color is snapped to the nearest available. Slight glow and scanlines.
 
 ### `led-rgb`
 Modern full-color RGB LED. Any CSS color. Small dots, minimal glow, no scanlines.
+
+### `split-flap`
+Airport departure board style. 20 character cells, dark background, white text. Characters cycle through the wheel with staggered timing and CSS 3D flip animations. Default wheel: uppercase letters, digits, and common punctuation.
+
+### `split-flap-clock`
+Flip alarm clock variant. 5 cells, larger character size, numeric-only wheel (`0-9`, `:`, `.`, space).

@@ -18,6 +18,7 @@ export class Timeline {
     this.listeners = {};
     this.containerWidth = 0;
     this.presetColors = options.presetColors || null;
+    this.tokenContext = null;
   }
 
   /**
@@ -42,7 +43,7 @@ export class Timeline {
     this.containerWidth = this.renderer.getContainerWidth();
     const textWidth = this.renderer.measureText(step.text || (prevState && prevState.text) || '');
 
-    return createPhase(step, this.containerWidth, textWidth, prevState, this.presetColors);
+    return createPhase(step, this.containerWidth, textWidth, prevState, this.presetColors, this.tokenContext);
   }
 
   play() {
@@ -84,6 +85,17 @@ export class Timeline {
 
   _tick(timestamp) {
     if (this.state !== STATE.PLAYING) return;
+
+    // FPS cap: skip frame if not enough time has elapsed.
+    // Don't update lastTimestamp on skipped frames so elapsed time accumulates.
+    if (this.options.maxFps && this.options.maxFps > 0 && this.lastTimestamp) {
+      const elapsed = timestamp - this.lastTimestamp;
+      const minFrameTime = 1000 / this.options.maxFps;
+      if (elapsed < minFrameTime * 0.8) {
+        this.rafId = requestAnimationFrame((ts) => this._tick(ts));
+        return;
+      }
+    }
 
     const dt = this.lastTimestamp ? timestamp - this.lastTimestamp : 16;
     this.lastTimestamp = timestamp;

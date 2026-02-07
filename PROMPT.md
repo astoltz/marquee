@@ -4,9 +4,9 @@ This document describes the Marquee Sign Library in enough detail that an AI or 
 
 ## Project Goal
 
-Build a browser-based programmable marquee sign library. It should simulate real-world sign hardware — LED dot-matrix, mechanical flip-tile, incandescent bulb, and modern CSS text — with animation phases that can be sequenced, looped, and driven from JSON files or WebSocket.
+Build a browser-based programmable marquee sign library. It should simulate real-world sign hardware — LED dot-matrix, split-flap display, mechanical flip-tile, incandescent bulb, and modern CSS text — with animation phases that can be sequenced, looped, and driven from JSON files or WebSocket.
 
-The library ships as two bundles: an ES module for `import` usage, and a UMD/IIFE bundle that exposes `window.MarqueeLib` for `<script>` tag usage.
+The library ships as three bundles: an ES module for `import` usage, a UMD/IIFE bundle that exposes `window.MarqueeLib` for `<script>` tag usage, and a separate DevTools bundle for performance monitoring.
 
 ## Philosophy
 
@@ -21,11 +21,13 @@ The library ships as two bundles: an ES module for `import` usage, and a UMD/IIF
 
 **Modern text mode** (default when no preset): Standard DOM spans, any CSS font, arbitrary colors. Good for large text.
 
-**LED dot-matrix mode** (forced on by presets): A grid of `<div>` dots laid out with CSS Grid. Each dot is styled individually (color, glow, shape). A 5x7 bitmap font maps characters to dot positions. For an 80-column, 9-row grid that's 720 dots — DOM performance is fine.
+**LED dot-matrix mode** (forced on by LED/flip-tile/bulb presets): A grid of `<div>` dots laid out with CSS Grid. Each dot is styled individually (color, glow, shape). A 5x7 bitmap font maps characters to dot positions. For an 80-column, 9-row grid that's 720 dots — DOM performance is fine.
+
+**Split-flap mode** (forced on by split-flap presets): A row of fixed-width `<div>` cells, each with upper/lower flap halves. Characters cycle through a wheel with CSS `rotateX()` 3D transforms. Staggered per-cell timing creates the cascading mechanical effect of real split-flap displays.
 
 ### Hardware Presets
 
-Nine presets defined as plain option objects:
+Eleven presets defined as plain option objects:
 
 | Preset | Colors | Dot | Transition | Notes |
 |--------|--------|-----|------------|-------|
@@ -38,8 +40,10 @@ Nine presets defined as plain option objects:
 | `led-mono-amber` | 1 (amber) | circle, 4px, gap 1 | instant | Scanline effect |
 | `led-14` | 14 fixed | circle, 4px, gap 1 | instant | Scanline effect, palette snapping |
 | `led-rgb` | unlimited | circle, 3px, gap 1 | instant | No restrictions |
+| `split-flap` | N/A | 20 cells, 40x60px | character wheel | Airport departure board |
+| `split-flap-clock` | N/A | 5 cells, 60x90px | numeric wheel | Flip alarm clock |
 
-When a user specifies a color that isn't in a preset's palette, the library snaps it to the nearest palette color using Euclidean RGB distance.
+When a user specifies a color that isn't in a preset's palette, the library snaps it to the nearest palette color using Euclidean RGB distance. Mono-color presets (`flip-tile`, `led-mono` variants) accept a custom `color` option to override the default palette.
 
 ### Animation Phases
 
@@ -59,6 +63,7 @@ Phases are stateless factory functions. Each factory receives `(config, containe
 | `fade-out` | Animate `opacity` from 1 to 0. |
 | `wipe-in` | Reveal text left-to-right via `wipeProgress`. |
 | `wipe-out` | Hide text left-to-right. |
+| `split-flap` | Set text on split-flap display, cycles characters through wheel. Duration calculated from worst-case wheel distance. |
 | `random` | Not its own implementation — picks randomly from the animated phases and delegates. |
 
 All phases produce the same state shape:
@@ -92,13 +97,21 @@ After resolution, colors are snapped to the preset's palette if the preset has r
 
 When `flipAnimation: true` (flip-tile presets), the renderer maintains two buffers: target state and visible state. When the target changes, column-by-column flip events are queued with `flipSpeed` ms delay between columns. Each render frame applies pending flips whose time has arrived. This creates the mechanical wave effect.
 
+### Token System
+
+Dynamic text tokens resolved at render time: `{time}`, `{date}`, `{datetime}`, `{year}`, `{date:FORMAT}` (PHP-style), `{data:ATTR}` (HTML data attributes), custom tokens from `tokens` option. `liveTokens: true` re-resolves every frame for clocks.
+
+### Stuck Tiles & Wear Tracking
+
+`setStuckTiles({ "row,col": "on"|"off" })` overrides individual dots. `getFlipCounts()` returns a Uint32Array of flip counts per tile for wear simulation.
+
 ### JSON File Loading
 
-`loadURL(url, opts)` fetches JSON with `cache: 'no-store'`. Format: `{ options: {...}, sequence: [...] }`. Options can include any Marquee option. Polling is via `pollInterval` (ms) using `setInterval`, or `pollAt` (time-of-day string like `'06:00'`) using self-rescheduling `setTimeout`.
+`loadURL(url, opts)` fetches JSON with `cache: 'no-store'`. Format: `{ options: {...}, sequence: [...] }`. Options can include any Marquee option. Polling is via `pollInterval` (ms) using `setInterval`, or `pollAt` (time-of-day string like `'06:00'`) using self-rescheduling `setTimeout`. JSON files can self-describe their refresh interval via `refreshInterval` and chain-load other URLs via `loadUrl` (with same-origin/allowedOrigins whitelist and maxChainDepth).
 
 ### WebSocket Live Control
 
-`connectWS(url)` opens a WebSocket. Server sends JSON with an `action` field mapped directly to Marquee methods: `sequence`, `setText`, `play`, `pause`, `stop`, `setTheme`. Auto-reconnect on disconnect.
+`connectWS(url)` opens a WebSocket. Server sends JSON with an `action` field mapped directly to Marquee methods: `sequence`, `setText`, `play`, `pause`, `stop`, `setTheme`, `setColor`, `setStuckTiles`, `getStatus`, `config`, `tokenUpdate`. Clients auto-register on connect. Auto-reconnect on disconnect.
 
 ### Easing Functions
 
@@ -115,31 +128,47 @@ src/
   index.js       — Marquee class (public API), merges preset + defaults + user options,
                    manages lifecycle, event emitter
   timeline.js    — Animation sequencer, requestAnimationFrame loop, builds phases lazily,
-                   advances on completion
-  phases.js      — Phase factory functions, makeState() helper, random phase delegation
-  renderer.js    — DOM rendering: modern text mode (spans + translate3d) and LED mode
-                   (CSS Grid of div dots), flip cascade buffers, wipe clipping
+                   advances on completion, maxFps frame cap
+  phases.js      — Phase factory functions, makeState() helper, random phase delegation,
+                   split-flap phase, token resolution integration
+  renderer.js    — DOM rendering: modern text (spans + translate3d), LED mode
+                   (CSS Grid of div dots), split-flap mode (3D flip cells),
+                   flip cascade buffers, wipe clipping, stuck tiles, flip counts
   colors.js      — resolveColor(config, charIndex, char, progress), snapToPresetColor()
-  presets.js     — PRESETS object (9 presets), snapToPresetColor(), getPresetDefaultColor()
+  presets.js     — PRESETS object (11 presets), snapToPresetColor(), getPresetDefaultColor()
   defaults.js    — DEFAULTS object, EASINGS, DOT_FONT (5x7 bitmap), CHAR_WIDTH (6), CHAR_HEIGHT (7)
-  styles.css     — Base styles, auto-injected into <head> via [data-marquee-styles]
-  websocket.js   — SignSocket class, JSON action dispatch, auto-reconnect
+  tokens.js      — Token resolution: {time}, {date}, {date:FORMAT}, {data:ATTR}, custom tokens
+  styles.css     — Base styles + split-flap 3D flip animations
+  websocket.js   — SignSocket class, JSON action dispatch, auto-register, auto-reconnect
+  devtools.js    — Performance monitoring overlay (separate bundle)
 
 dist/            — esbuild output
-  marquee.esm.js — ES module bundle
-  marquee.umd.js — UMD/IIFE bundle (window.MarqueeLib)
-  marquee.css    — Compiled CSS
+  marquee.esm.js      — ES module bundle
+  marquee.umd.js      — UMD/IIFE bundle (window.MarqueeLib)
+  marquee.devtools.js — DevTools bundle (not included in main)
+  marquee.css         — Compiled CSS
+
+server/
+  ws-server.mjs       — HTTP + WebSocket server with admin auth
+  store.mjs           — In-memory state store, persists to data.json
+  scheduler.mjs       — Schedule evaluator (time ranges + cron)
+  viewer-tracker.mjs  — Connected viewer management
+
+admin/
+  index.html          — Admin panel (dashboard, sequences, config, scheduler, viewers)
 
 demo/
   index.html     — Full demo page with tabbed sections, lazy-loaded demos, Demo Mode
   sign-sequence.json — Example JSON for loadURL() polling
 
+test/            — Unit tests (node:test + jsdom)
 embed.html       — Drop-in embed example (self-hosted + JSON-driven variants)
 server.mjs       — Dev server for local testing (node server.mjs)
 API.md           — Full API reference
 ARCHITECTURE.md  — Code structure and design decisions
 PROMPT.md        — This file
 README.md        — User-facing documentation
+RESEARCH.md      — Animation pattern research for future phases
 ```
 
 ## Key Implementation Details
@@ -166,22 +195,23 @@ On first `Marquee` instantiation, minimal CSS is injected into `<head>` with a `
 
 ### Build
 
-esbuild produces ESM and UMD bundles. CSS is copied from `src/styles.css` to `dist/marquee.css`. No transpilation beyond what esbuild does by default.
+esbuild produces ESM, UMD, and DevTools bundles. CSS is copied from `src/styles.css` to `dist/marquee.css`. No transpilation beyond what esbuild does by default. Unit tests use `node:test` with `jsdom`. ESLint enforces code quality.
 
 ## Demo Page
 
-`demo/index.html` has a tabbed interface with 8 sections:
+`demo/index.html` has a tabbed interface with 9 sections:
 
 1. **Featured** — Showcase sequence: scroll, flash, float, fade with changing text
 2. **Cycling** — Multiple messages with `phase: 'random'` selection
-3. **Tri-Color** — Red/white/blue stripe demo using `stripeDirection: 'horizontal'`
+3. **Tri-Color** — Red/white/blue stripe demo using `stripeDirection: 'horizontal'`, including mono-color preset demo
 4. **Flip-Tile** — Mechanical flip-dot display with visible cascade
-5. **Modern Text** — CSS text mode (no LED grid)
-6. **Live Polling** — JSON file polling with `loadURL()`
-7. **All Presets** — Grid of all 9 hardware presets side by side
-8. **Builder** — Interactive sequence builder with preset switcher and JSON editor
+5. **Split-Flap** — Airport departure board and flip clock demos
+6. **Modern Text** — CSS text mode (no LED grid)
+7. **Live Polling** — JSON file polling with `loadURL()`
+8. **All Presets** — Grid of all 11 hardware presets side by side
+9. **Builder** — Interactive sequence builder with preset switcher, side-by-side JSON editor and live preview
 
-Each demo section is lazy-loaded: the sign is only initialized when its tab is first selected. A **Demo Mode** button auto-rotates through all tabs every 8 seconds.
+Each demo section is lazy-loaded: the sign is only initialized when its tab is first selected. A **Demo Mode** button auto-rotates through all tabs every 8 seconds. Mobile-responsive layout adjusts to viewport width.
 
 ## Embedding
 

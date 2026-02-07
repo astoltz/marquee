@@ -21,6 +21,30 @@ export const DEFAULTS = {
   // Sign hardware preset (null = modern, or 'flip-tile', 'bulb', 'led-14', 'led-mono', 'led-rgb')
   preset: null,
 
+  // Split-flap display
+  splitFlap: false,
+  cellCount: 20,
+  charWidth: 40,
+  charHeight: 60,
+  cellGap: 3,
+  flipDuration: 80,
+  splitFlapStagger: 50,
+  splitFlapCase: 'upper',
+  wheelOrder: null,  // null = default wheel
+
+  // Stuck tiles (hardware failure simulation)
+  stuckTiles: null,
+
+  // Tokens
+  tokens: null,
+
+  // JSON chain-loading
+  allowedOrigins: null,
+  maxChainDepth: 3,
+
+  // Performance
+  maxFps: 0,  // 0 = unlimited
+
   // WebSocket
   reconnect: true,
   reconnectInterval: 3000,

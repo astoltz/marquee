@@ -27,11 +27,25 @@ export class Renderer {
     // Preset overrides
     this.preset = options._preset || null;
 
+    // Split-flap state
+    this.isSplitFlap = options.splitFlap || false;
+    this._sfCells = [];
+    this._sfCurrentChars = [];
+    this._sfTargetChars = [];
+    this._sfFlipTimers = [];
+    this.splitFlapComplete = true;
+
     // Flip-tile cascade state
     this._flipTargetDots = null;  // what dots SHOULD be
     this._flipVisibleDots = null; // what dots ARE (delayed cascade)
     this._flipQueue = [];         // pending flip events {index, targetOn, time}
     this._flipTimer = null;
+
+    // Stuck tiles (simulated hardware failures)
+    this._stuckTiles = null;  // Map of index -> "on"|"off"
+
+    // Flip counts for wear tracking
+    this._flipCounts = null;
 
     this._setup();
   }
@@ -39,7 +53,9 @@ export class Renderer {
   _setup() {
     this.container.classList.add('marquee-container');
 
-    if (this.isLed) {
+    if (this.isSplitFlap) {
+      this._setupSplitFlap();
+    } else if (this.isLed) {
       this._setupLed();
     } else {
       this._setupModern();
@@ -121,6 +137,254 @@ export class Renderer {
         this.charEls[i].style.opacity = i < visibleChars ? '1' : '0';
       }
     }
+  }
+
+  // --- Split-flap display mode ---
+
+  _getWheel() {
+    if (this.options.wheelOrder) return this.options.wheelOrder;
+    const upper = ' ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.!?-:/';
+    if (this.options.splitFlapCase === 'mixed') {
+      return upper + 'abcdefghijklmnopqrstuvwxyz';
+    }
+    return upper;
+  }
+
+  _setupSplitFlap() {
+    this.container.innerHTML = '';
+    this.container.classList.add('marquee-split-flap');
+
+    const cellCount = this.options.cellCount || 20;
+    const charWidth = this.options.charWidth || 40;
+    const charHeight = this.options.charHeight || 60;
+    const cellGap = this.options.cellGap || 3;
+    const bg = this.options.background || '#1a1a1a';
+    const color = this.options.color || '#e8e8d0';
+
+    this.container.style.background = bg;
+    this.container.style.display = 'flex';
+    this.container.style.justifyContent = 'center';
+    this.container.style.padding = '12px';
+
+    const row = document.createElement('div');
+    row.className = 'marquee-sf-row';
+    row.style.display = 'flex';
+    row.style.gap = cellGap + 'px';
+
+    this._sfCells = [];
+    this._sfCurrentChars = [];
+    this._sfTargetChars = [];
+    this._sfFlipTimers = [];
+
+    for (let i = 0; i < cellCount; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'marquee-sf-cell';
+      cell.style.width = charWidth + 'px';
+      cell.style.height = charHeight + 'px';
+      cell.style.position = 'relative';
+      cell.style.perspective = '200px';
+      cell.style.overflow = 'hidden';
+
+      const upper = document.createElement('div');
+      upper.className = 'marquee-sf-flap-top';
+      upper.style.position = 'absolute';
+      upper.style.top = '0';
+      upper.style.left = '0';
+      upper.style.right = '0';
+      upper.style.height = '50%';
+      upper.style.overflow = 'hidden';
+      upper.style.background = '#2a2a2a';
+      upper.style.borderBottom = '1px solid #111';
+      upper.style.borderRadius = '3px 3px 0 0';
+      upper.style.display = 'flex';
+      upper.style.alignItems = 'flex-end';
+      upper.style.justifyContent = 'center';
+
+      const upperText = document.createElement('span');
+      upperText.style.color = color;
+      upperText.style.fontSize = (charHeight * 0.7) + 'px';
+      upperText.style.fontFamily = "'Courier New', monospace";
+      upperText.style.fontWeight = this.options.fontWeight || 'bold';
+      upperText.style.lineHeight = '1';
+      upperText.style.transform = 'translateY(50%)';
+      upperText.textContent = ' ';
+      upper.appendChild(upperText);
+
+      const lower = document.createElement('div');
+      lower.className = 'marquee-sf-flap-bottom';
+      lower.style.position = 'absolute';
+      lower.style.bottom = '0';
+      lower.style.left = '0';
+      lower.style.right = '0';
+      lower.style.height = '50%';
+      lower.style.overflow = 'hidden';
+      lower.style.background = '#333';
+      lower.style.borderRadius = '0 0 3px 3px';
+      lower.style.display = 'flex';
+      lower.style.alignItems = 'flex-start';
+      lower.style.justifyContent = 'center';
+
+      const lowerText = document.createElement('span');
+      lowerText.style.color = color;
+      lowerText.style.fontSize = (charHeight * 0.7) + 'px';
+      lowerText.style.fontFamily = "'Courier New', monospace";
+      lowerText.style.fontWeight = this.options.fontWeight || 'bold';
+      lowerText.style.lineHeight = '1';
+      lowerText.style.transform = 'translateY(-50%)';
+      lowerText.textContent = ' ';
+      lower.appendChild(lowerText);
+
+      cell.appendChild(upper);
+      cell.appendChild(lower);
+      row.appendChild(cell);
+
+      this._sfCells.push({ cell, upperText, lowerText });
+      this._sfCurrentChars.push(' ');
+      this._sfTargetChars.push(' ');
+      this._sfFlipTimers.push(null);
+    }
+
+    this.container.appendChild(row);
+
+    // Size the container
+    const totalWidth = cellCount * charWidth + (cellCount - 1) * cellGap + 24;
+    this.container.style.width = totalWidth + 'px';
+    this.container.style.height = (charHeight + 24) + 'px';
+  }
+
+  _renderSplitFlap(state) {
+    if (!state.text && !state.visible) return;
+
+    let text = state.text || '';
+    if (this.options.splitFlapCase === 'upper') {
+      text = text.toUpperCase();
+    }
+
+    // Pad or trim to cell count
+    const cellCount = this._sfCells.length;
+    // Center the text
+    if (text.length < cellCount) {
+      const pad = Math.floor((cellCount - text.length) / 2);
+      text = ' '.repeat(pad) + text + ' '.repeat(cellCount - text.length - pad);
+    } else if (text.length > cellCount) {
+      text = text.slice(0, cellCount);
+    }
+
+    const wheel = this._getWheel();
+    const flipDuration = this.options.flipDuration || 80;
+    const stagger = this.options.splitFlapStagger || 50;
+
+    // Check if any targets changed
+    let anyChanged = false;
+    for (let i = 0; i < cellCount; i++) {
+      const target = text[i] || ' ';
+      if (this._sfTargetChars[i] !== target) {
+        this._sfTargetChars[i] = target;
+        anyChanged = true;
+
+        // Start flipping this cell with stagger delay
+        if (this._sfFlipTimers[i]) clearTimeout(this._sfFlipTimers[i]);
+        const delay = i * stagger;
+        this._sfFlipTimers[i] = setTimeout(() => {
+          this._flipCell(i, wheel, flipDuration);
+        }, delay);
+      }
+    }
+
+    if (anyChanged) {
+      this.splitFlapComplete = false;
+    }
+
+    // Apply opacity
+    if (state.opacity !== undefined) {
+      this.container.style.opacity = state.opacity;
+    }
+    // Apply visibility
+    if (state.visible !== undefined) {
+      this.container.style.visibility = state.visible ? 'visible' : 'hidden';
+    }
+  }
+
+  _flipCell(cellIndex, wheel, flipDuration) {
+    const current = this._sfCurrentChars[cellIndex];
+    const target = this._sfTargetChars[cellIndex];
+
+    if (current === target) {
+      this._checkSplitFlapComplete();
+      return;
+    }
+
+    // Find positions on wheel
+    let currentPos = wheel.indexOf(current);
+    if (currentPos === -1) currentPos = 0;
+    let targetPos = wheel.indexOf(target);
+    if (targetPos === -1) targetPos = 0;
+
+    // Advance one step on the wheel
+    const nextPos = (currentPos + 1) % wheel.length;
+    const nextChar = wheel[nextPos];
+
+    // Apply the flip animation
+    const cellData = this._sfCells[cellIndex];
+    const cell = cellData.cell;
+
+    // Create the flip animation element
+    const flipEl = document.createElement('div');
+    flipEl.className = 'marquee-sf-flip';
+    flipEl.style.position = 'absolute';
+    flipEl.style.top = '0';
+    flipEl.style.left = '0';
+    flipEl.style.right = '0';
+    flipEl.style.height = '50%';
+    flipEl.style.overflow = 'hidden';
+    flipEl.style.background = '#2a2a2a';
+    flipEl.style.borderBottom = '1px solid #111';
+    flipEl.style.borderRadius = '3px 3px 0 0';
+    flipEl.style.transformOrigin = 'bottom center';
+    flipEl.style.display = 'flex';
+    flipEl.style.alignItems = 'flex-end';
+    flipEl.style.justifyContent = 'center';
+    flipEl.style.zIndex = '2';
+
+    const flipText = document.createElement('span');
+    flipText.style.color = this.options.color || '#e8e8d0';
+    flipText.style.fontSize = ((this.options.charHeight || 60) * 0.7) + 'px';
+    flipText.style.fontFamily = "'Courier New', monospace";
+    flipText.style.fontWeight = this.options.fontWeight || 'bold';
+    flipText.style.lineHeight = '1';
+    flipText.style.transform = 'translateY(50%)';
+    flipText.textContent = current;
+    flipEl.appendChild(flipText);
+    cell.appendChild(flipEl);
+
+    // Update the static panels to show the next character
+    cellData.upperText.textContent = nextChar;
+    cellData.lowerText.textContent = nextChar;
+    this._sfCurrentChars[cellIndex] = nextChar;
+
+    // Animate the flip
+    flipEl.style.transition = `transform ${flipDuration}ms ease-in`;
+    requestAnimationFrame(() => {
+      flipEl.style.transform = 'rotateX(-90deg)';
+    });
+
+    setTimeout(() => {
+      if (flipEl.parentNode) flipEl.parentNode.removeChild(flipEl);
+
+      // Continue flipping if not at target
+      if (nextChar !== target) {
+        this._flipCell(cellIndex, wheel, flipDuration);
+      } else {
+        this._checkSplitFlapComplete();
+      }
+    }, flipDuration);
+  }
+
+  _checkSplitFlapComplete() {
+    for (let i = 0; i < this._sfCurrentChars.length; i++) {
+      if (this._sfCurrentChars[i] !== this._sfTargetChars[i]) return;
+    }
+    this.splitFlapComplete = true;
   }
 
   // --- LED dot-matrix mode ---
@@ -205,6 +469,7 @@ export class Renderer {
     if (this.options.flipAnimation) {
       this._flipVisibleDots = new Uint8Array(rows * cols);
       this._flipVisibleColors = new Array(rows * cols).fill(null);
+      this._flipCounts = new Uint32Array(rows * cols);
     }
   }
 
@@ -276,6 +541,11 @@ export class Renderer {
           this.dots[r * this.gridCols + c] = 0;
         }
       }
+    }
+
+    // Apply stuck tiles override
+    if (this._stuckTiles) {
+      this._applyStuckTiles(offColor);
     }
 
     // Apply opacity by dimming colors
@@ -363,6 +633,9 @@ export class Renderer {
     const remaining = [];
     for (const item of this._flipQueue) {
       if (now >= item.time) {
+        if (this._flipVisibleDots[item.idx] !== item.targetOn) {
+          if (this._flipCounts) this._flipCounts[item.idx]++;
+        }
         this._flipVisibleDots[item.idx] = item.targetOn;
         this._flipVisibleColors[item.idx] = item.targetColor;
       } else {
@@ -401,10 +674,45 @@ export class Renderer {
     }
   }
 
+  // --- Stuck tiles ---
+
+  setStuckTiles(tiles) {
+    if (!tiles) {
+      this._stuckTiles = null;
+      return;
+    }
+    this._stuckTiles = new Map();
+    for (const [key, value] of Object.entries(tiles)) {
+      const [row, col] = key.split(',').map(Number);
+      const idx = row * this.gridCols + col;
+      this._stuckTiles.set(idx, value);
+    }
+  }
+
+  getFlipCounts() {
+    return this._flipCounts;
+  }
+
+  _applyStuckTiles(_offColor) {
+    if (!this._stuckTiles) return;
+    for (const [idx, mode] of this._stuckTiles) {
+      if (mode === 'on') {
+        this.dots[idx] = 1;
+        if (!this.dotColors[idx]) {
+          this.dotColors[idx] = this.options.color || '#ff3300';
+        }
+      } else if (mode === 'off') {
+        this.dots[idx] = 0;
+      }
+    }
+  }
+
   // --- Public API ---
 
   render(state) {
-    if (this.isLed) {
+    if (this.isSplitFlap) {
+      this._renderSplitFlap(state);
+    } else if (this.isLed) {
       this._renderLed(state);
     } else {
       this._renderModern(state);
@@ -413,6 +721,12 @@ export class Renderer {
   }
 
   getContainerWidth() {
+    if (this.isSplitFlap) {
+      const cellCount = this.options.cellCount || 20;
+      const charWidth = this.options.charWidth || 40;
+      const cellGap = this.options.cellGap || 3;
+      return cellCount * charWidth + (cellCount - 1) * cellGap;
+    }
     if (this.isLed) {
       return this._gridPixelWidth();
     }
@@ -420,6 +734,12 @@ export class Renderer {
   }
 
   measureText(text) {
+    if (this.isSplitFlap) {
+      // For split-flap, text width = number of chars * cell width
+      const charWidth = this.options.charWidth || 40;
+      const cellGap = this.options.cellGap || 3;
+      return (text || '').length * (charWidth + cellGap);
+    }
     if (this.isLed) {
       // Text width in pixels = charCount * CHAR_WIDTH dots * pxPerDot - trailing gap
       const charDots = text.length * CHAR_WIDTH;
@@ -440,16 +760,29 @@ export class Renderer {
   }
 
   destroy() {
+    // Clear split-flap timers
+    if (this._sfFlipTimers) {
+      this._sfFlipTimers.forEach(t => { if (t) clearTimeout(t); });
+    }
     this.container.innerHTML = '';
-    this.container.classList.remove('marquee-container', 'marquee-led');
+    this.container.classList.remove('marquee-container', 'marquee-led', 'marquee-split-flap');
     this.container.style.width = '';
     this.container.style.height = '';
     this.container.style.background = '';
+    this.container.style.display = '';
+    this.container.style.justifyContent = '';
+    this.container.style.padding = '';
+    this.container.style.opacity = '';
+    this.container.style.visibility = '';
     this.dotElements = null;
     this.dots = null;
     this._flipQueue = [];
     this._flipVisibleDots = null;
     this._flipVisibleColors = null;
+    this._sfCells = [];
+    this._sfCurrentChars = [];
+    this._sfTargetChars = [];
+    this._sfFlipTimers = [];
     this.charEls = [];
     this.textEl = null;
   }
